@@ -167,7 +167,8 @@ Jan/2018 - Nov/2018 · Sao Paulo, SP, Brazil (Remote)
 ## Selected Projects
 
 ### bilingual resume website / roneyrogerio.dev
-Personal project
+Personal project  
+Repository: https://github.com/roneyrogerio/curriculum
 
 - Built a bilingual resume website in Astro 5 with Markdown content, CSS styling, and static generation focused on readability, PDF printing, and ATS compatibility.
 - Organized the project with Portuguese and English routes, a shared layout, versioned content, and a structure optimized for static publishing.
@@ -178,19 +179,22 @@ Personal project
 - Team and ownership: solo project covering architecture, implementation, visual design, containerization, CI/CD, and deployment configuration.
 
 ### minishell (C)
-Associated with 42 Sao Paulo
+Associated with 42 Sao Paulo  
+Repository: https://github.com/roneyrogerio/minishell
 
 - Implemented a Linux shell in C using system calls only, without relying on lexer libraries.
 - Added support for multiple commands, single and double quotes, character escaping, pipelines, and redirections (`<`, `>` and `>>`).
 - Implemented built-ins (`echo`, `cd`, `pwd`, `export`, `unset`, `env`, `exit`), signals (`ctrl-C`, `ctrl-D`, `ctrl-\\`), and environment variables.
 
 ### cub3D (C)
+Associated with 42 Sao Paulo  
 Repository: https://github.com/roneyrogerio/cub3D
 
 - Implemented a pseudo-3D engine using raycasting techniques.
 - Applied math and rendering concepts for real-time simulation.
 
 ### raycast-engine (C)
+Associated with 42 Sao Paulo  
 Repository: https://github.com/roneyrogerio/raycast-engine
 
 - Built a library focused on raycasting primitives and engine foundations.

@@ -167,7 +167,8 @@ jan/2018 - nov/2018 · São Paulo, SP, Brasil (Remoto)
 ## Projetos em Destaque
 
 ### currículo bilíngue / roneyrogerio.dev
-Projeto pessoal
+Projeto pessoal  
+Repositório: https://github.com/roneyrogerio/curriculum
 
 - Desenvolvimento de currículo bilíngue em Astro 5 com conteúdo em Markdown, estilização em CSS e geração estática com foco em legibilidade, impressão em PDF e compatibilidade com ATS.
 - Estrutura organizada com rotas em português e inglês, layout compartilhado, conteúdo versionado no repositório e otimização para publicação como site estático.
@@ -178,21 +179,22 @@ Projeto pessoal
 - Equipe e operação: projeto individual, cobrindo arquitetura, implementação, experiência visual, containerização, CI/CD e configuração de deploy.
 
 ### minishell (C)
-Associado a 42 São Paulo
+Associado a 42 São Paulo  
+Repositório: https://github.com/roneyrogerio/minishell
 
 - Implementação de terminal Linux em C utilizando chamadas de sistema, sem uso de biblioteca de lexer.
 - Suporte a múltiplos comandos, aspas simples e duplas, escape de caracteres especiais, pipelines e redireções (`<`, `>` e `>>`).
 - Implementação de built-ins (`echo`, `cd`, `pwd`, `export`, `unset`, `env`, `exit`), sinais (`ctrl-C`, `ctrl-D`, `ctrl-\`) e variáveis de ambiente.
 
 ### cub3D (C)
-Associado a 42 São Paulo
+Associado a 42 São Paulo  
 Repositório: https://github.com/roneyrogerio/cub3D
 
 - Implementação de engine pseudo-3D com raycasting.
 - Aplicação de conceitos de matemática e renderização para simulação em tempo real.
 
 ### raycast-engine (C)
-Associado a 42 São Paulo
+Associado a 42 São Paulo  
 Repositório: https://github.com/roneyrogerio/raycast-engine
 
 - Biblioteca dedicada a recursos de raycasting e base de engine.
