@@ -1,0 +1,50 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description: string;
+  lang: string;
+  schemaData?: Record<string, unknown>;
+}
+
+const { title, description, lang, schemaData } = Astro.props;
+const printLabel = lang === "pt-BR" ? "Imprimir" : "Print";
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="robots" content="index, follow" />
+    <title>{title}</title>
+    {schemaData && (
+      <script is:inline type="application/ld+json" set:html={JSON.stringify(schemaData)} />
+    )}
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="page-header">
+        <div class="header-actions">
+          <button class="print-button" type="button" id="print-cv" aria-label={printLabel}>
+            {printLabel}
+          </button>
+          <nav aria-label="Language selector">
+            <a href="/pt-br/">PT-BR</a>
+            <span aria-hidden="true">|</span>
+            <a href="/en-us/">EN-US</a>
+          </nav>
+        </div>
+      </header>
+      <main class="page-content">
+        <slot />
+      </main>
+    </div>
+    <script is:inline>
+      const printButton = document.getElementById("print-cv");
+      printButton?.addEventListener("click", () => window.print());
+    </script>
+  </body>
+</html>

@@ -1,0 +1,52 @@
+---
+import CVLayout from "../layouts/CVLayout.astro";
+
+const modules = import.meta.glob("../content/cv/pt-br.md", { eager: true });
+const entry = Object.values(modules)[0] as
+  | {
+  frontmatter: {
+    name: string;
+    role: string;
+    email: string;
+    website?: string;
+    linkedin: string;
+    github: string;
+    seoTitle: string;
+    seoDescription: string;
+  };
+  Content: any;
+}
+  | undefined;
+
+if (!entry) {
+  throw new Error("Arquivo de conteudo PT-BR nao encontrado.");
+}
+
+const { Content, frontmatter } = entry;
+
+const schemaData = {
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  inLanguage: "pt-BR",
+  mainEntity: {
+    "@type": "Person",
+    name: frontmatter.name,
+    jobTitle: frontmatter.role,
+    email: frontmatter.email,
+    sameAs: [frontmatter.website, frontmatter.linkedin, frontmatter.github].filter(Boolean)
+  }
+};
+---
+
+<CVLayout
+  title={frontmatter.seoTitle}
+  description={frontmatter.seoDescription}
+  lang="pt-BR"
+  schemaData={schemaData}
+>
+  <section class="cv">
+    <article>
+      <Content />
+    </article>
+  </section>
+</CVLayout>
