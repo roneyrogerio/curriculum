@@ -1,6 +1,6 @@
 ---
 name: Roney de Oliveira
-role: Software Engineer e Desenvolvedor | Engenharia Backend, Entrega Full Stack e Práticas DevOps | Cloud AWS e GCP, Kubernetes e Knative
+role: Software Engineer | Backend | Frontend | DevOps | Golang | Node.js | React
 email: "contact@roneyrogerio.dev"
 website: https://roneyrogerio.dev
 linkedin: https://www.linkedin.com/in/roneyrogerio/
@@ -12,23 +12,23 @@ seoDescription: "Currículo de Software Engineer com foco em engenharia backend,
 # Roney de Oliveira
 
 **CARGO-ALVO**  
-Software Engineer e Desenvolvedor | Engenharia Backend, Entrega Full Stack e Práticas DevOps | Cloud AWS e GCP, Kubernetes e Knative
+Software Engineer | Backend | Frontend | DevOps | Golang | Node.js | React
 
 - **Email:** contact@roneyrogerio.dev
 - **Site:** https://roneyrogerio.dev
 - **Telefone:** +55 43 9 9196-1524
 - **WhatsApp:** +55 43 9 9196-1524 (https://wa.me/5543991961524)
-- **Localização:** Brasil (Remoto)
+- **Localização:** Apucarana, Paraná, Brasil
 - **LinkedIn:** https://www.linkedin.com/in/roneyrogerio/
 - **GitHub:** https://github.com/roneyrogerio
 
 ## Resumo Profissional
 
-Software Engineer e Desenvolvedor com foco principal em engenharia backend, atuando também na entrega full stack e na operação com práticas DevOps.
+Sou engenheiro de software com experiência no desenvolvimento de aplicações web, APIs e microsserviços em produção, atuando com backend, frontend e práticas DevOps.
 
-Possui experiência prática em Go, TypeScript, JavaScript, PHP, C e C++, com atuação no desenho, desenvolvimento, testes e sustentação de microsserviços, APIs e aplicações web em nuvem.
+Tenho atuado principalmente com Go, PostgreSQL, Node.js e React, além de cloud, containers e arquitetura orientada a serviços.
 
-Trabalha com ênfase em confiabilidade, escalabilidade e manutenibilidade, incluindo AWS Lambda em Go, arquitetura orientada a serviços, troubleshooting de produção e evolução de plataforma com Kubernetes e Knative.
+Tenho foco em código simples, escalável e de fácil manutenção, com interesse contínuo em performance, concorrência e sistemas distribuídos.
 
 ## Competências Técnicas
 
@@ -137,14 +137,36 @@ Trabalha com ênfase em confiabilidade, escalabilidade e manutenibilidade, inclu
 ### Engenheiro de Software Sênior (Tempo integral)
 **e-didatico**
 
-jul/2021 - Atual · Remoto
+jul/2024 - mai/2026 · Remoto
 
-- Atua em ciclo completo de engenharia: desenho, desenvolvimento, testes, operação e sustentação de serviços e produtos.
-- Conduz práticas DevOps e operacionais para aumentar confiabilidade, velocidade de entrega e estabilidade em produção.
-- Trabalha com microsserviços e workloads em cloud, com uso de AWS e GCP em componentes de aplicação e dados.
-- Liderou migração de workloads para o Google Cloud Run, reduzindo em 20% os custos de infraestrutura de servidores e melhorando a eficiência operacional do ambiente.
-- Apoia a eficácia do time em métodos ágeis, incluindo atuação com Scrum no ciclo de entrega.
-- Desenvolve e evolui soluções backend e integrações com foco em valor de negócio, manutenibilidade e qualidade técnica.
+- Atuação de ponta a ponta no ciclo de engenharia, desenvolvendo e operando soluções backend em cloud (AWS e GCP).
+- Aplicação de práticas DevOps e ágeis para garantir entregas eficientes, estáveis e de alto valor.
+- Experiência em microsserviços, confiabilidade operacional e evolução contínua de plataforma.
+
+### Engenheiro de Software Pleno (Tempo integral)
+**e-didatico**
+
+jan/2022 - jul/2024 · Londrina, Paraná, Brasil
+
+- Atuação com autonomia e domínio do sistema na implementação de funcionalidades.
+- Correções de bugs e manutenção evolutiva em ambiente de produção.
+- Desenvolvimento backend com Node.js e PostgreSQL, apoiando entregas contínuas do produto.
+
+### Engenheiro de Software Júnior (Tempo integral)
+**e-didatico**
+
+jul/2021 - jan/2022 · Londrina, Paraná, Brasil
+
+- Desenvolvimento de funcionalidades e correção de bugs.
+- Participação no ciclo de entrega com foco em qualidade e estabilidade do software.
+
+### Analista de Helpdesk (Autônomo)
+**e-didatico**
+
+mar/2021 - jul/2021 · Brasília e Região
+
+- Atendimento aos alunos durante a aplicação de provas online.
+- Suporte operacional para garantir continuidade e qualidade do serviço.
 
 ### Desenvolvedor Full Stack (Tempo integral)
 **Early Denver**
@@ -163,6 +185,14 @@ jan/2018 - nov/2018 · São Paulo, SP, Brasil (Remoto)
 - Desenvolveu funcionalidades de software para aplicações web.
 - Trabalhou com PHP, JavaScript, MySQL, HTML e CSS na implementação de telas e regras de negócio.
 - Utilizou Bootstrap para padronização de interface e melhoria de produtividade no frontend.
+
+### Desenvolvedor Web (Tempo integral)
+**Self-Employed**
+
+nov/2010 - dez/2017 · Remoto
+
+- Desenvolveu projetos próprios com HTML, CSS, PHP, MySQL e Nginx.
+- Realizou monetização de produtos e conteúdo digital por meio do Google AdSense.
 
 ## Projetos em Destaque
 
@@ -208,6 +238,11 @@ Repositório: https://github.com/roneyrogerio/raycast-engine
 - **42 São Paulo (Ensino Técnico em Engenharia de Software):** 2020 - 2021
 
 ## Certificações
+
+- **Programming with Google Go Specialization (University of California, Irvine):** emitida em mai/2026 (credencial: 2UUQCPO9MST7)
+- **Concurrency in Go (University of California, Irvine):** emitida em mai/2026 (credencial: M2EKXK59LHYI)
+- **Functions, Methods, and Interfaces in Go (University of California, Irvine):** emitida em mai/2026 (credencial: WIEGNHPO8TBM)
+- **Getting Started with Go (University of California, Irvine):** emitida em mai/2026 (credencial: KFGD3IF75I0Q)
 
 - **Direito Eletrônico:** 60 horas, 2º semestre de 2023
 - **Estruturas de Dados em Python:** 10 horas, 1º semestre de 2023

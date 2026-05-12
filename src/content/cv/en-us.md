@@ -1,6 +1,6 @@
 ---
 name: Roney de Oliveira
-role: Software Engineer | Backend Engineering, Full Stack Delivery, and DevOps Practices | AWS and GCP Cloud, Kubernetes and Knative
+role: Software Engineer | Backend | Frontend | DevOps | Golang | Node.js | React
 email: "contact@roneyrogerio.dev"
 website: https://roneyrogerio.dev
 linkedin: https://www.linkedin.com/in/roneyrogerio/
@@ -12,23 +12,23 @@ seoDescription: "Software Engineer resume focused on backend engineering, full s
 # Roney de Oliveira
 
 **TARGET ROLE**  
-Software Engineer | Backend Engineering, Full Stack Delivery, and DevOps Practices | AWS and GCP Cloud, Kubernetes and Knative
+Software Engineer | Backend | Frontend | DevOps | Golang | Node.js | React
 
 - **Email:** contact@roneyrogerio.dev
 - **Website:** https://roneyrogerio.dev
 - **Phone:** +55 43 9 9196-1524
 - **WhatsApp:** +55 43 9 9196-1524 (https://wa.me/5543991961524)
-- **Location:** Brazil (Remote)
+- **Location:** Apucarana, Parana, Brazil
 - **LinkedIn:** https://www.linkedin.com/in/roneyrogerio/
 - **GitHub:** https://github.com/roneyrogerio
 
 ## Professional Summary
 
-Software Engineer with a backend-oriented profile and hands-on experience in Go, TypeScript, JavaScript, PHP, C, and C++.
+Software engineer with hands-on experience building web applications, APIs, and production microservices across backend, frontend, and DevOps workflows.
 
-Designs, codes, tests, and operates microservices and cloud services with emphasis on reliability, scalability, and maintainability.
+Mainly works with Go, PostgreSQL, Node.js, and React, along with cloud platforms, containers, and service-oriented architecture.
 
-Includes practical experience with AWS Lambda in Go, service-oriented architecture, production troubleshooting, and platform evolution with Kubernetes and Knative under a data-driven product mindset.
+Strong focus on simple, scalable, and maintainable code, with continuous interest in performance, concurrency, and distributed systems.
 
 ## Technical Skills
 
@@ -137,14 +137,36 @@ Includes practical experience with AWS Lambda in Go, service-oriented architectu
 ### Senior Software Engineer (Full-time)
 **e-didatico**
 
-Jul/2021 - Present · Remote
+Jul/2024 - May/2026 · Remote
 
-- Owns full-cycle engineering responsibilities across design, development, testing, operations, and production support.
-- Drives DevOps and operational practices to improve reliability, delivery speed, and production stability.
-- Works with microservices and cloud workloads, using AWS and GCP across application and data components.
-- Led workload migration to Google Cloud Run, reducing server infrastructure costs by 20% while improving operational efficiency.
-- Supports team effectiveness in agile delivery, including Scrum practices in the delivery cycle.
-- Builds and evolves backend services and integrations focused on business value, maintainability, and engineering quality.
+- Worked end-to-end across the engineering lifecycle, building and operating backend solutions in cloud environments (AWS and GCP).
+- Applied DevOps and agile practices to deliver stable, efficient, and high-value releases.
+- Contributed to microservices-based systems, operational reliability, and continuous platform evolution.
+
+### Mid-Level Software Engineer (Full-time)
+**e-didatico**
+
+Jan/2022 - Jul/2024 · Londrina, Parana, Brazil
+
+- Worked with autonomy and strong system ownership to implement new features.
+- Handled bug fixes and evolutionary maintenance in production environments.
+- Built backend services with Node.js and PostgreSQL to support continuous product delivery.
+
+### Junior Software Engineer (Full-time)
+**e-didatico**
+
+Jul/2021 - Jan/2022 · Londrina, Parana, Brazil
+
+- Developed new features and fixed software defects.
+- Supported delivery cycles with focus on quality and product stability.
+
+### Helpdesk Analyst (Self-employed)
+**e-didatico**
+
+Mar/2021 - Jul/2021 · Brasilia and Region
+
+- Provided support to students during online exam operations.
+- Helped ensure service continuity and operational quality.
 
 ### Full Stack Developer (Full-time)
 **Early Denver**
@@ -163,6 +185,14 @@ Jan/2018 - Nov/2018 · Sao Paulo, SP, Brazil (Remote)
 - Developed software features for web applications.
 - Worked with PHP, JavaScript, MySQL, HTML, and CSS to implement UI flows and business rules.
 - Used Bootstrap to standardize interface components and improve frontend delivery speed.
+
+### Web Developer (Full-time)
+**Self-Employed**
+
+Nov/2010 - Dec/2017 · Remote
+
+- Built independent projects with HTML, CSS, PHP, MySQL, and Nginx.
+- Monetized digital products and content through Google AdSense.
 
 ## Selected Projects
 
@@ -208,6 +238,11 @@ Repository: https://github.com/roneyrogerio/raycast-engine
 - **42 Sao Paulo (Technical Education in Software Engineering):** 2020 - 2021
 
 ## Certifications
+
+- **Programming with Google Go Specialization (University of California, Irvine):** issued in May/2026 (credential: 2UUQCPO9MST7)
+- **Concurrency in Go (University of California, Irvine):** issued in May/2026 (credential: M2EKXK59LHYI)
+- **Functions, Methods, and Interfaces in Go (University of California, Irvine):** issued in May/2026 (credential: WIEGNHPO8TBM)
+- **Getting Started with Go (University of California, Irvine):** issued in May/2026 (credential: KFGD3IF75I0Q)
 
 - **Electronic Law:** 60 hours, 2nd semester of 2023
 - **Data Structures in Python:** 10 hours, 1st semester of 2023
