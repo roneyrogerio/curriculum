@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.2](https://github.com/roneyrogerio/curriculum/compare/v0.3.1...v0.3.2) (2026-09-19)
+
+
+### Correções
+
+* confiar no protocolo encaminhado pelo Cloudflare ([e2c37a4](https://github.com/roneyrogerio/curriculum/commit/e2c37a47bfff33d882531184f5fc5e02b053469d))
+* fechar o endpoint próprio da Action, que ninguém chama ([52dabc9](https://github.com/roneyrogerio/curriculum/commit/52dabc913570e0d3427217204a264a26ac43e1a6))
+
 ## [0.3.1](https://github.com/roneyrogerio/curriculum/compare/v0.3.0...v0.3.1) (2026-09-19)
 
 
