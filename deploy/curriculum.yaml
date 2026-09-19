@@ -31,6 +31,10 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
+            # Stated here as well as in the image, so the guarantee does not
+            # depend on reading the Dockerfile to know which user it runs as.
+            runAsUser: 1000
+            runAsGroup: 1000
             readOnlyRootFilesystem: false
             capabilities:
               drop:

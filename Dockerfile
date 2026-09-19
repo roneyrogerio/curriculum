@@ -33,7 +33,12 @@ COPY package.json ./
 
 # The image ships no OpenAI key. It is injected at runtime from a Kubernetes
 # Secret, so the published image stays exactly as public as the repository.
-USER node
+#
+# Numeric, not `node`. With `runAsNonRoot: true` the kubelet has to prove the
+# user is not root before starting the container, and it cannot resolve a name
+# against the image's /etc/passwd — it refuses with CreateContainerConfigError.
+# 1000:1000 is what `node` resolves to in this image.
+USER 1000:1000
 
 EXPOSE 8080
 CMD ["node", "./dist/server/entry.mjs"]
