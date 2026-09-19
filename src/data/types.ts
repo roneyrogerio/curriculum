@@ -8,12 +8,6 @@ export type Locale = "pt-br" | "en-us";
 export interface Term {
   name: string;
   alias?: string[];
-  /**
-   * Skills that demonstrate this term. A posting for a Go microservices job is
-   * a backend job even when it never writes the word "backend", so a discipline
-   * is ranked by what the posting demands, not by whether it names it.
-   */
-  evidence?: string[];
 }
 
 export interface Skill extends Term {
@@ -29,6 +23,8 @@ export interface SkillGroup {
 export interface Position {
   title: string;
   company: string;
+  /** The employer's site, so the name can be checked rather than taken. */
+  companyUrl?: string;
   employment: string;
   start: string;
   end: string;
@@ -53,6 +49,12 @@ export interface EducationEntry {
   degree: string;
   period: string;
   note?: string;
+  /**
+   * The diploma, published under /certificados. The published image is a
+   * redaction: the document states identity-card number, date and place of
+   * birth, and those are painted out of the pixels before it is published.
+   */
+  url?: string;
 }
 
 export interface Certification {
@@ -60,11 +62,20 @@ export interface Certification {
   issuer: string;
   issued: string;
   credentialId?: string;
+  /** Where the credential can be checked. Printed, so it is checkable on paper. */
+  url?: string;
 }
 
 export interface Course {
   name: string;
+  /** Institution that issued it. */
+  issuer: string;
+  /** Hours, as the certificate states them. */
   workload: string;
+  /** When it was taken, as the certificate states it. */
+  period: string;
+  /** The certificate itself, published under /certificados. */
+  url?: string;
 }
 
 export interface LanguageSkill {
@@ -80,14 +91,25 @@ export interface Labels {
   education: string;
   certifications: string;
   courses: string;
+  /** Link text for a course's own certificate file. */
+  certificate: string;
+  /** Link text for the published diploma. */
+  diploma: string;
   languages: string;
   links: string;
   keywords: string;
   targetRole: string;
   print: string;
   printAction: string;
+  /** Link para a página privada de adaptação, na barra de impressão. */
+  tailor: string;
   backToSite: string;
   repository: string;
+  /**
+   * Caption before a project's own address. Deliberately neutral: it labels
+   * every project that has a site, and one of them is a game while another is
+   * a recipe site.
+   */
   liveSite: string;
   present: string;
   languageSwitch: string;
@@ -97,27 +119,6 @@ export interface Labels {
   themeAuto: string;
   themeLight: string;
   themeDark: string;
-  tailorTitle: string;
-  tailorHint: string;
-  tailorPlaceholder: string;
-  tailorApply: string;
-  tailorReset: string;
-  tailorCoverage: string;
-  tailorPromoted: string;
-  tailorMissing: string;
-  tailorMissingHint: string;
-  tailorNone: string;
-  tailorSwitched: string;
-  tailorGuarantee: string;
-  tailorTitleUse: string;
-  tailorTitleNote: string;
-  tailorVerdict: string;
-  tailorDownloadPdf: string;
-  tailorDownloadDocx: string;
-  tailorAdaptedBadge: string;
-  tailorTitleField: string;
-  tailorTitlePlaceholder: string;
-  tailorOrder: string;
 }
 
 export interface Contact {
@@ -154,7 +155,6 @@ export interface CV {
   skillGroups: SkillGroup[];
   positions: Position[];
   projects: Project[];
-  otherProjects: string;
   education: EducationEntry[];
   certifications: Certification[];
   courses: Course[];

@@ -834,3 +834,38 @@ code {
   background: var(--accent-soft);
   color: var(--accent-ink);
 }
+
+/* ------------------------------------------------- credenciais e diplomas */
+
+/*
+ * Os links de certificado e diploma. Herdavam o azul padrão do navegador, que
+ * destoa do tema inteiro — e num currículo o que é clicável precisa parecer
+ * clicável sem parecer um erro de estilo.
+ */
+.record__meta a,
+.chips a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 0.06em;
+}
+
+.record__meta a:hover,
+.chips a:hover {
+  text-decoration-thickness: 0.12em;
+}
+
+/* A pílula inteira é o alvo do clique, não só o texto dentro dela. */
+.chips li:has(a) {
+  padding: 0;
+}
+
+.chips li:has(a) a {
+  display: inline-block;
+  padding: 0.3rem 0.65rem 0.3rem 0.65rem;
+  text-decoration: none;
+}
+
+.chips li:has(a):hover {
+  border-color: var(--accent);
+}

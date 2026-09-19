@@ -7,7 +7,7 @@ const entries = allLocales.map((locale) => [locale, cvByLocale[locale]] as const
 describe.each(entries)("%s", (_locale, cv: CV) => {
   it("keeps every section populated", () => {
     // Guards against an edit silently dropping a whole block: this is exactly
-    // how `otherProjects` and an education entry once disappeared unnoticed.
+    // how an education entry once disappeared unnoticed.
     expect(cv.summary.length).toBeGreaterThan(0);
     expect(cv.skillGroups.length).toBeGreaterThan(0);
     expect(cv.positions.length).toBeGreaterThan(0);
@@ -16,7 +16,6 @@ describe.each(entries)("%s", (_locale, cv: CV) => {
     expect(cv.certifications.length).toBeGreaterThan(0);
     expect(cv.languages.length).toBeGreaterThan(0);
     expect(cv.keywords.length).toBeGreaterThan(0);
-    expect(cv.otherProjects).toBeTruthy();
   });
 
   it("has no empty strings in rendered content", () => {

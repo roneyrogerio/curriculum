@@ -22,6 +22,23 @@ const sections = [
 
 const printPath = `/${cv.locale}/print/`;
 
+/*
+ * Every link the résumé emits, in one place.
+ *
+ * `target="_blank"` because a visitor checking a repository or a credential is
+ * reading the page, and replacing it with a PDF loses their place.
+ * `noopener noreferrer` because a new tab otherwise gets a handle back to this
+ * one. `nofollow` because a résumé is not an endorsement: the outgoing links
+ * are evidence for a reader, and passing this page's ranking to an employer,
+ * a university or a certificate issuer is not what they are there for.
+ *
+ * A mailto or a tel is not a page, so it is left alone.
+ */
+const away = (href: string) =>
+  /^(mailto|tel):/i.test(href)
+    ? {}
+    : { target: "_blank", rel: "noopener noreferrer nofollow" };
+
 const contactItems = [
   { key: "email", value: contact.email, href: `mailto:${contact.email}` },
   { key: "tel", value: contact.phone, href: `tel:${contact.phoneHref}` },
@@ -57,7 +74,7 @@ const contactItems = [
           <li class="contact__item">
             <span class="contact__key">{item.key}</span>
             {item.href
-              ? <a class="contact__value" href={item.href}>{item.value}</a>
+              ? <a class="contact__value" href={item.href} {...away(item.href)}>{item.value}</a>
               : <span class="contact__value">{item.value}</span>}
           </li>
         ))}
@@ -67,7 +84,7 @@ const contactItems = [
         <a class="button button--primary" href={printPath}>{labels.print}</a>
         <a class="button" href={`/cv/Roney-Oliveira-Software-Engineer-${cv.locale.slice(-2).toUpperCase()}.pdf`} download>PDF</a>
         <a class="button" href={`/cv/Roney-Oliveira-Software-Engineer-${cv.locale.slice(-2).toUpperCase()}.docx`} download>DOCX</a>
-        <a class="button" href={contact.whatsapp} rel="noopener">WhatsApp</a>
+        <a class="button" href={contact.whatsapp} {...away(contact.whatsapp)}>WhatsApp</a>
       </p>
     </header>
 
@@ -117,7 +134,7 @@ const contactItems = [
               <div class="entry__body">
                 <h3 class="entry__title">{position.title}</h3>
                 <p class="entry__meta">
-                  <span class="entry__company">{position.company}</span>
+                  <span class="entry__company">{position.companyUrl ? <a href={position.companyUrl} {...away(position.companyUrl)}>{position.company} ↗</a> : position.company}</span>
                   <span class="entry__dot" aria-hidden="true">·</span>{position.employment}
                   <span class="entry__dot" aria-hidden="true">·</span>{position.location}
                 </p>
@@ -148,16 +165,15 @@ const contactItems = [
               {(project.repository || project.url) && (
                 <p class="project__link">
                   {project.repository ? (
-                    <a href={project.repository} rel="noopener">{labels.repository} ↗</a>
+                    <a href={project.repository} {...away(project.repository)}>{labels.repository} ↗</a>
                   ) : (
-                    <a href={project.url} rel="noopener">{labels.liveSite} {project.url?.replace(/^https?:\/\//, "")} ↗</a>
+                    <a href={project.url} {...away(project.url!)}>{labels.liveSite} {project.url?.replace(/^https?:\/\//, "")} ↗</a>
                   )}
                 </p>
               )}
             </article>
           ))}
         </div>
-        <p class="note">{cv.otherProjects}</p>
       </div>
     </section>
 
@@ -169,7 +185,15 @@ const contactItems = [
             <li class="record">
               <p class="record__primary">{entry.degree}</p>
               <p class="record__secondary">{entry.institution}</p>
-              <p class="record__meta">{entry.period}{entry.note ? ` · ${entry.note}` : ""}</p>
+              <p class="record__meta">
+                {entry.period}{entry.note ? ` · ${entry.note}` : ""}
+                {entry.url && (
+                  <>
+                    {" · "}
+                    <a href={entry.url} {...away(entry.url)}>{labels.diploma} ↗</a>
+                  </>
+                )}
+              </p>
             </li>
           ))}
         </ul>
@@ -186,7 +210,14 @@ const contactItems = [
               <p class="record__secondary">{certification.issuer}</p>
               <p class="record__meta">
                 {certification.issued}
-                {certification.credentialId ? ` · ID ${certification.credentialId}` : ""}
+                {certification.url ? (
+                  <>
+                    {" · "}
+                    <a href={certification.url} {...away(certification.url)}>
+                      {certification.credentialId ?? labels.certificate} ↗
+                    </a>
+                  </>
+                ) : certification.credentialId ? ` · ${certification.credentialId}` : ""}
               </p>
             </li>
           ))}
@@ -194,7 +225,14 @@ const contactItems = [
         <h3 class="subsection">{labels.courses}</h3>
         <ul class="chips">
           {cv.courses.map((course) => (
-            <li>{course.name} <span class="chips__meta">{course.workload}</span></li>
+            <li>
+              {course.url ? (
+                <a href={course.url} {...away(course.url)}>{course.name} ↗</a>
+              ) : (
+                course.name
+              )}
+              <span class="chips__meta">{course.workload} · {course.period}</span>
+            </li>
           ))}
         </ul>
       </div>

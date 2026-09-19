@@ -8,16 +8,10 @@ export const enUs: CV = {
   name: "Roney de Oliveira",
   role: "Software Engineer",
   disciplines: [
-    {
-      name: "Backend",
-      evidence: ["Go", "Microservices", "REST APIs", "PostgreSQL", "Service-oriented architecture", "Asynchronous messaging", "Scalability", "Gin"]
-    },
-    { name: "Frontend", evidence: ["React", "HTML and CSS", "TypeScript", "Astro", "Vite", "Three.js"] },
-    { name: "Full Stack", evidence: ["Node.js", "React", "PostgreSQL", "REST APIs"] },
-    {
-      name: "DevOps",
-      evidence: ["Kubernetes", "Docker", "Terraform", "CI/CD with GitHub Actions", "Observability", "Linux", "Knative"]
-    }
+    { name: "Backend" },
+    { name: "Frontend" },
+    { name: "Full Stack" },
+    { name: "DevOps" }
   ],
   technologies: [
     { name: "Go", alias: ["Golang"] },
@@ -28,10 +22,10 @@ export const enUs: CV = {
   ],
   seoTitle: "Roney de Oliveira — Backend, Frontend and DevOps Software Engineer",
   seoDescription:
-    "Resume of Roney de Oliveira, a Software Engineer with 8 years of experience in Go, Node.js, React, microservices, AWS, GCP, Kubernetes and Knative. Open to remote roles.",
+    "Resume of Roney de Oliveira, a Software Engineer with 8 years of experience in Go, Node.js, React, microservices, AWS, GCP, Oracle Cloud, Kubernetes and Knative. Open to remote roles.",
   summary: [
     "Software engineer with hands-on experience building web applications, APIs and production microservices end to end, across backend, frontend and DevOps.",
-    "Works mainly with Go, PostgreSQL, Node.js and React, plus cloud platforms (AWS and GCP), containers and service-oriented architecture.",
+    "Works mainly with Go, PostgreSQL, Node.js and React, plus cloud platforms (AWS, GCP and Oracle Cloud), containers and service-oriented architecture.",
     "Focused on simple, scalable and maintainable code, with a continuous interest in performance, concurrency and distributed systems."
   ],
   contact: { ...contact, location: "Apucarana, Parana, Brazil" },
@@ -44,6 +38,7 @@ export const enUs: CV = {
         { name: "JavaScript", level: 4 },
         { name: "Node.js", level: 4 },
         { name: "PHP", level: 4 },
+        { name: "WordPress", level: 3 },
         { name: "C", level: 3 },
         { name: "C++", level: 3 }
       ]
@@ -52,6 +47,7 @@ export const enUs: CV = {
       title: "Frontend",
       skills: [
         { name: "React", level: 4 },
+        { name: "Next.js", alias: ["App Router"], level: 4 },
         { name: "HTML and CSS", level: 4 },
         { name: "Astro", level: 4 },
         { name: "Vite", level: 4 },
@@ -64,6 +60,11 @@ export const enUs: CV = {
       skills: [
         { name: "Microservices", level: 5 },
         { name: "REST APIs", level: 5 },
+        { name: "GraphQL", level: 3 },
+        { name: "Webhooks", level: 4 },
+        { name: "Server-Sent Events", alias: ["SSE"], level: 4 },
+        { name: "Real-time video", alias: ["Cloudflare RealtimeKit", "Streaming"], level: 3 },
+        { name: "Idempotency", level: 4 },
         { name: "Gin", level: 4 },
         { name: "Service-oriented architecture", alias: ["SOA"], level: 4 },
         { name: "API versioning", alias: ["Contract versioning"], level: 4 },
@@ -84,13 +85,18 @@ export const enUs: CV = {
         { name: "Amazon S3", level: 4 },
         { name: "Amazon RDS", level: 4 },
         { name: "AWS CloudFormation", level: 4 },
+        { name: "AWS API Gateway", level: 3 },
         { name: "AWS Rekognition", level: 3 },
         { name: "Google Cloud Platform", alias: ["GCP"], level: 4 },
         { name: "Cloud Run", level: 4 },
+        { name: "Cloudflare R2", alias: ["Object storage"], level: 3 },
         { name: "BigQuery", level: 3 },
         { name: "Pub/Sub", level: 3 },
         { name: "Vertex AI", level: 3 },
+        { name: "Oracle Cloud Infrastructure", alias: ["OCI", "Oracle Cloud"], level: 3 },
+        { name: "Oracle Kubernetes Engine", alias: ["OKE"], level: 4 },
         { name: "Observability", alias: ["Monitoring"], level: 4 },
+        { name: "OpenTelemetry", alias: ["Distributed tracing", "Tracing"], level: 3 },
         { name: "Production troubleshooting", level: 5 },
         { name: "DevOps", level: 5 }
       ]
@@ -100,11 +106,16 @@ export const enUs: CV = {
       skills: [
         { name: "PostgreSQL", alias: ["Relational databases"], level: 4 },
         { name: "MongoDB", level: 3 },
+        { name: "SQLite", level: 3 },
         { name: "Prisma", level: 3 },
         { name: "Data modeling", level: 4 },
         { name: "Query optimization", level: 4 },
         { name: "Linux", level: 5 },
         { name: "Self-hosted LLM inference", alias: ["Local LLM"], level: 3 },
+        { name: "Llama", alias: ["Ollama"], level: 3 },
+        { name: "OpenAI API", alias: ["LLM"], level: 4 },
+        { name: "Structured Outputs with JSON Schema", alias: ["JSON Schema"], level: 4 },
+        { name: "Prompt engineering", level: 4 },
         { name: "Service networking", level: 4 },
         { name: "Docker", level: 5 },
         { name: "Kubernetes", alias: ["K8s"], level: 4 },
@@ -117,8 +128,29 @@ export const enUs: CV = {
   ],
   positions: [
     {
+      title: "Full Stack Developer",
+      company: "Proaba",
+      companyUrl: "https://proaba.com.br",
+      employment: "Freelance",
+      start: "Aug 2026",
+      end: "Sep 2026",
+      startDate: "2026-08-19",
+      endDate: "2026-09-17",
+      location: "Remote",
+      highlights: [
+        "Live session broadcast and recording with Cloudflare RealtimeKit on a children's clinic platform: room creation, per-participant tokens, preset provisioning and teardown, all server-side.",
+        "Recording written straight to Cloudflare R2, with automatic transcription and playback inside the session screen itself.",
+        "Provider webhooks handled idempotently: overlapping events stopped creating two media records for one recording, and the retry the API itself asked for by answering 500 stopped being discarded as a duplicate.",
+        "SSE stream released while the tab is hidden and closed in `try/finally`, so an open session does not hold a slot at the provider.",
+        "Access control requiring the child relationship to reach a recording, per-recording enablement, and listing by the viewer's timezone rather than the server's.",
+        "Privacy by design: no patient name reaches the provider — the room is identified by the session id.",
+        "End-to-end tests in Playwright, and provider secrets mapped per environment in the deploy."
+      ]
+    },
+    {
       title: "Senior Software Engineer",
       company: "e-didatico",
+      companyUrl: "https://edidatico.com",
       employment: "Full-time",
       start: "Jul 2024",
       end: "May 2026",
@@ -134,6 +166,7 @@ export const enUs: CV = {
     {
       title: "Mid-Level Software Engineer",
       company: "e-didatico",
+      companyUrl: "https://edidatico.com",
       employment: "Full-time",
       start: "Jan 2022",
       end: "Jul 2024",
@@ -149,6 +182,7 @@ export const enUs: CV = {
     {
       title: "Junior Software Engineer",
       company: "e-didatico",
+      companyUrl: "https://edidatico.com",
       employment: "Full-time",
       start: "Jul 2021",
       end: "Jan 2022",
@@ -163,6 +197,7 @@ export const enUs: CV = {
     {
       title: "Helpdesk Analyst",
       company: "e-didatico",
+      companyUrl: "https://edidatico.com",
       employment: "Self-employed",
       start: "Mar 2021",
       end: "Jul 2021",
@@ -239,7 +274,7 @@ export const enUs: CV = {
         "Custom binary WebSocket protocol, little endian, with a reference frame written by Go and decoded by the TypeScript client test: changing one side without the other breaks the build.",
         "Interest management that treats each player as a line segment, hand to kite, on a 48 m spatial grid with a 120 m radius and hysteresis — 12 µs per player, zero allocation.",
         "Profile-guided optimization: a sorted sweep replacing all-pairs comparison (28 ms to ~1 ms per tick) and quickselect replacing sorting in per-send kite selection (16% to 2.4% of tick CPU).",
-        "Purpose-built load test with 5,000 concurrent WebSockets, no connection failures or drops; production capacity set at 2,000 players per room from measured tick p99.",
+        "Purpose-built load test with 5,000 concurrent WebSockets, no connection failures or drops; production runs the room at 140 flyers and 15 frames per second, a limit set by the 10 Mbps load balancer rather than by CPU.",
         "Runs on Knative over Kubernetes with two services and two domains, images on GHCR and automated versioning through release-please."
       ]
     },
@@ -253,15 +288,29 @@ export const enUs: CV = {
         "TypeScript",
         "Node.js 24",
         "Docker",
-        "NGINX",
         "GitHub Actions",
+        "OpenAI API",
         "Kubernetes",
         "Knative"
       ],
       highlights: [
+        "Résumé tailoring to a job posting with an LLM (OpenAI API with Structured Outputs): the model receives identified facts and returns only selection, order and wording; employer, dates and links come from the source.",
+        "Automatic verification of every rewritten sentence against its source, rejecting any technology or number the fact does not state.",
         "Bilingual static site with a reading version and an A4 print version, plus PDF and DOCX exporters validated against an ATS parsing simulator.",
-        "Automated deployment through GitHub Actions on pushes to `main`, publishing a multi-architecture image (`linux/amd64` and `linux/arm64`) to GitHub Container Registry, served by unprivileged NGINX in a multi-stage container.",
+        "Automated deployment through GitHub Actions on every release, with versioning and changelog by release-please and a multi-architecture image (`linux/amd64` and `linux/arm64`) published to GitHub Container Registry.",
         "Runs as a Knative Service on Kubernetes (Oracle Kubernetes Engine), with a dedicated namespace and custom domain mapping."
+      ]
+    },
+    {
+      name: "Receitex — receitex.com.br",
+      context: "Personal project · unmaintained, still online",
+      url: "https://receitex.com.br",
+      stack: ["WordPress", "PHP", "React", "OpenAI API", "MySQL", "Docker", "Kubernetes", "Knative"],
+      highlights: [
+        "Recipe site with a plugin of its own, CulinAI: a React panel inside the WordPress admin that generates a whole recipe — title, ingredients with fractions, method, categories and tags — and publishes it as a post.",
+        "Text and dish photo generated by AI, with the image uploaded to the media library through the plugin's own REST routes.",
+        "Packaged into a container from the official WordPress image, running as a Knative Service on Kubernetes, with MySQL, its own domain and TLS.",
+        "No longer maintained, and online on purpose: it is the record of a whole site written by AI back when that was new. The images are from the first generation of those models — recognisable as the right dish, and visibly short of what is produced today."
       ]
     },
     {
@@ -274,16 +323,123 @@ export const enUs: CV = {
         "Support for multiple commands, single and double quotes, character escaping, pipelines and redirections (`<`, `>` and `>>`).",
         "Built-ins (`echo`, `cd`, `pwd`, `export`, `unset`, `env`, `exit`), signals (`ctrl-C`, `ctrl-D`, `ctrl-\\`) and environment variables."
       ]
+    },
+    {
+      name: "Pipefy Client Management API",
+      context: "Personal project · 2026",
+      repository: "https://github.com/roneyrogerio/pipefy-client-management-api",
+      stack: [
+        "Go",
+        "Gin",
+        "SQLite",
+        "GraphQL",
+        "OpenTelemetry",
+        "Jaeger",
+        "Docker Compose",
+        "AWS Lambda",
+        "API Gateway"
+      ],
+      highlights: [
+        "REST API in Go with Gin and SQLite persistence, for client records and invested-assets processing.",
+        "GraphQL integration with Pipefy and webhook intake with idempotency control: the same event delivered twice is not processed twice.",
+        "Distributed tracing with OpenTelemetry and Jaeger, and a complete local environment in Docker Compose — GraphQL mock, collector and hot-reloading API — brought up with one command.",
+        "The same router serves local HTTP and AWS Lambda through API Gateway proxy integration, with automated tests over the routes."
+      ]
+    },
+    {
+      name: "cub3D and raycast-engine",
+      context: "42 São Paulo · 2020",
+      repository: "https://github.com/roneyrogerio/cub3D",
+      stack: ["C", "Raycasting", "Makefile"],
+      highlights: [
+        "Pseudo-3D game demo drawn by raycasting in C, with the engine extracted into its own library and the game consuming only its interface.",
+        "The library exposes camera, minimap, window size and movement update, and draws the scene through a function pointer supplied by the caller."
+      ]
+    },
+    {
+      name: "libbmp",
+      context: "42 São Paulo · 2020",
+      repository: "https://github.com/roneyrogerio/libbmp",
+      stack: ["C"],
+      highlights: [
+        "Pure C library to read, create, edit pixel by pixel and write BMP images at 24 and 32 bits per pixel.",
+        "Works directly on the file format and little-endian byte order, with no external dependency."
+      ]
+    },
+    {
+      name: "ft_server",
+      context: "42 São Paulo · 2020",
+      repository: "https://github.com/roneyrogerio/ft_server",
+      stack: ["Docker", "NGINX", "PHP", "MySQL", "WordPress"],
+      highlights: [
+        "A single Docker image serving NGINX, PHP, MySQL, WordPress and phpMyAdmin, configured from scratch."
+      ]
+    },
+    {
+      name: "ft_services",
+      context: "42 São Paulo · 2020",
+      repository: "https://github.com/roneyrogerio/ft_services",
+      stack: ["System administration", "Networking", "Containers"],
+      highlights: [
+        "System administration and networking project: provisioning and orchestration of services in containers."
+      ]
+    },
+    {
+      name: "libasm",
+      context: "42 São Paulo · 2020",
+      repository: "https://github.com/roneyrogerio/libasm",
+      stack: ["Assembly", "C"],
+      highlights: [
+        "C standard library functions rewritten in Assembly, keeping the original calling conventions and error returns."
+      ]
+    },
+    {
+      name: "libft",
+      context: "42 São Paulo · 2020",
+      repository: "https://github.com/roneyrogerio/libft",
+      stack: ["C"],
+      highlights: [
+        "Reimplementation of the C standard library functions — memory, strings, conversions and file-descriptor output — written from scratch to learn what each one costs.",
+        "Includes a linked list of its own, with creation, insertion at both ends, iteration, mapping and release."
+      ]
+    },
+    {
+      name: "ft_printf",
+      context: "42 São Paulo · 2020",
+      repository: "https://github.com/roneyrogerio/ft_printf",
+      stack: ["C", "Variadic functions"],
+      highlights: [
+        "Reimplementation of printf in C, with a variable number of arguments and dispatch by format specifier, built on the libft above."
+      ]
+    },
+    {
+      name: "get_next_line",
+      context: "42 São Paulo · 2020",
+      repository: "https://github.com/roneyrogerio/get_next_line",
+      stack: ["C", "POSIX system calls"],
+      highlights: [
+        "A function that reads a file line by line from a descriptor using only `read`, `malloc` and `free`, with the buffer size fixed at compile time.",
+        "The second version fixed the leak the first one left when a file was not read to the end — the pending state stayed allocated with no owner."
+      ]
+    },
+    {
+      name: "C++ modules",
+      context: "42 São Paulo · 2021",
+      repository: "https://github.com/roneyrogerio/cpp_module_00",
+      stack: ["C++"],
+      highlights: [
+        "The first 42 C++ modules: reading command-line arguments, and an in-memory phone book with ADD, SEARCH and EXIT commands.",
+        "The next module gathers five more exercises, in cpp_module_01."
+      ]
     }
   ],
-  otherProjects:
-    "Additional 42 Sao Paulo projects: cub3D and raycast-engine (pseudo-3D raycasting engine in C), ft_services (systems and network administration), libasm (Assembly), ft_server (Docker), get_next_line, ft_printf and libft.",
   education: [
     {
       institution: "UNOPAR — Universidade Norte do Parana",
       degree: "Technology degree in Systems Analysis and Development",
       period: "Jan 2022 — Dec 2023",
-      note: "Final grade 9.5/10"
+      note: "Final grade 9.5/10",
+      url: "/certificados/diploma.png"
     },
     {
       institution: "42 Sao Paulo",
@@ -293,37 +449,91 @@ export const enUs: CV = {
   ],
   certifications: [
     {
+      name: "Next.js App Router Fundamentals",
+      issuer: "Vercel",
+      issued: "Aug 2026",
+      credentialId: "dashboard-app",
+      url: "https://nextjs.org/learn/certificate?course=dashboard-app&user=169196&certId=dashboard-app-169196-1786987870264"
+    },
+    {
+      name: "React Foundations for Next.js",
+      issuer: "Vercel",
+      issued: "Aug 2026",
+      credentialId: "react-foundations",
+      url: "https://nextjs.org/learn/certificate?course=react-foundations&user=169196&certId=react-foundations-169196-1785884720767"
+    },
+    {
       name: "Programming with Google Go Specialization",
       issuer: "University of California, Irvine",
       issued: "May 2026",
-      credentialId: "2UUQCPO9MST7"
+      credentialId: "2UUQCPO9MST7",
+      url: "https://www.coursera.org/account/accomplishments/specialization/2UUQCPO9MST7"
     },
     {
       name: "Concurrency in Go",
       issuer: "University of California, Irvine",
       issued: "May 2026",
-      credentialId: "M2EKXK59LHYI"
+      credentialId: "M2EKXK59LHYI",
+      url: "https://www.coursera.org/account/accomplishments/certificate/M2EKXK59LHYI"
     },
     {
       name: "Functions, Methods, and Interfaces in Go",
       issuer: "University of California, Irvine",
       issued: "May 2026",
-      credentialId: "WIEGNHPO8TBM"
+      credentialId: "WIEGNHPO8TBM",
+      url: "https://www.coursera.org/account/accomplishments/certificate/WIEGNHPO8TBM"
     },
     {
       name: "Getting Started with Go",
       issuer: "University of California, Irvine",
       issued: "May 2026",
-      credentialId: "KFGD3IF75I0Q"
+      credentialId: "KFGD3IF75I0Q",
+      url: "https://www.coursera.org/account/accomplishments/certificate/KFGD3IF75I0Q"
     }
   ],
   courses: [
-    { name: "Data Structures in Python", workload: "10h · 2023" },
-    { name: "Introduction to Data Analysis with Python", workload: "15h · 2023" },
-    { name: "Introduction to the Python Language", workload: "15h · 2023" },
-    { name: "Management Models", workload: "60h · 2023" },
-    { name: "Electronic Law", workload: "60h · 2023" },
-    { name: "Information Technologies Applied to Law", workload: "60h · 2023" }
+    {
+      name: "Introduction to the Python Language",
+      issuer: "Unopar",
+      workload: "15 h",
+      period: "first half of 2023",
+      url: "/certificados/introducao-a-linguagem-python.pdf"
+    },
+    {
+      name: "Introduction to Data Analysis with Python",
+      issuer: "Unopar",
+      workload: "15 h",
+      period: "first half of 2023",
+      url: "/certificados/introducao-a-analise-de-dados-com-python.pdf"
+    },
+    {
+      name: "Data Structures in Python",
+      issuer: "Unopar",
+      workload: "10 h",
+      period: "first half of 2023",
+      url: "/certificados/estruturas-de-dados-em-python.pdf"
+    },
+    {
+      name: "Information Technologies Applied to Law",
+      issuer: "Unopar",
+      workload: "60 h",
+      period: "second half of 2023",
+      url: "/certificados/tecnologias-de-informacao-aplicadas-ao-direito.pdf"
+    },
+    {
+      name: "Electronic Law",
+      issuer: "Unopar",
+      workload: "60 h",
+      period: "second half of 2023",
+      url: "/certificados/direito-eletronico.pdf"
+    },
+    {
+      name: "Management Models",
+      issuer: "Unopar",
+      workload: "60 h",
+      period: "second half of 2023",
+      url: "/certificados/modelos-de-gestao.pdf"
+    }
   ],
   languages: [
     { name: "Portuguese", level: "Native" },
@@ -358,6 +568,8 @@ export const enUs: CV = {
     projects: "Projects",
     education: "Education",
     certifications: "Certifications",
+    certificate: "certificate",
+    diploma: "diploma",
     courses: "Additional courses",
     languages: "Languages",
     links: "Contact",
@@ -365,9 +577,10 @@ export const enUs: CV = {
     targetRole: "Target role",
     print: "Print version",
     printAction: "Print or save as PDF",
+    tailor: "Tailor to a job",
     backToSite: "Back to resume",
     repository: "Repository",
-    liveSite: "Play at",
+    liveSite: "Live at",
     present: "present",
     languageSwitch: "Language selector",
     skillLevel: "Level",
@@ -376,26 +589,5 @@ export const enUs: CV = {
     themeAuto: "System",
     themeLight: "Light",
     themeDark: "Dark",
-    tailorTitle: "Tailor to a job",
-    tailorHint: "Paste the job description. The resume is reordered to lead with what the posting asks for — nothing is added.",
-    tailorPlaceholder: "Paste the job description here…",
-    tailorApply: "Tailor",
-    tailorReset: "Back to the original",
-    tailorCoverage: "Coverage of the posting's technical terms",
-    tailorPromoted: "Moved to the front",
-    tailorMissing: "The posting asks for, and the resume does not say",
-    tailorMissingHint: "None of this was added, on purpose. If it is true, add it to the resume; if not, leave it out.",
-    tailorNone: "The posting asks for no technical term the resume is missing.",
-    tailorSwitched: "The posting is in English, so this is the English version.",
-    tailorGuarantee: "Only reorders what the resume already says.",
-    tailorTitleUse: "Use the posting's job title as the target role",
-    tailorTitleNote: "It is the most searched keyword in an ATS. Naming the role you are applying for claims no ability — it is the only text from the posting that enters the document, and only while this box is ticked.",
-    tailorVerdict: "Benchmark: 80% or more is strong, 65-79% moderate, below that weak.",
-    tailorDownloadPdf: "Tailored PDF",
-    tailorDownloadDocx: "Tailored DOCX",
-    tailorAdaptedBadge: "tailored to the job",
-    tailorTitleField: "Job title (optional)",
-    tailorTitlePlaceholder: "e.g. Senior Backend Engineer (Go)",
-    tailorOrder: "New order of the skill groups"
   }
 };
