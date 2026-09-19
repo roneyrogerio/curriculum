@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# The print routes are kept out of the index with a noindex meta tag, not with a
+# Disallow: Google has to be able to crawl the page to read that rule.
+
+Sitemap: https://roneyrogerio.dev/sitemap.xml
