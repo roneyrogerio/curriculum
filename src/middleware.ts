@@ -75,7 +75,12 @@ export function cacheControlFor(pathname: string): string {
  * So the door is bricked up rather than guarded. 404, not 403: a refusal that
  * says "this exists but you may not" is an invitation to keep trying.
  */
-const ACTION_ENDPOINT = /^\/_actions\//;
+/*
+ * Case-insensitive on purpose. Astro's own routing is case-sensitive, so
+ * /_Actions/tailor already 404s — but that is a guarantee borrowed from
+ * somebody else's behaviour, and this rule should hold on its own.
+ */
+const ACTION_ENDPOINT = /^\/_actions\//i;
 
 export const onRequest: MiddlewareHandler = async (context, next) => {
   if (ACTION_ENDPOINT.test(context.url.pathname)) {

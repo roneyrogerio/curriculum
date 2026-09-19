@@ -45,6 +45,12 @@ describe("the action's own endpoint", () => {
     expect((await post("/_actions/tailor")).status).toBe(404);
   });
 
+  it("does not depend on the casing of the path", async () => {
+    // Astro's routing is case-sensitive, so this already 404s without the rule.
+    // The rule should not need that to be true.
+    expect((await post("/_Actions/tailor")).status).toBe(404);
+  });
+
   it("lets the page itself through", async () => {
     expect((await post("/print/tailor/")).status).toBe(200);
   });
