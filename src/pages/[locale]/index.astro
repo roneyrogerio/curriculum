@@ -1,0 +1,17 @@
+---
+import CvSite from "../../components/CvSite.astro";
+import { allLocales, cvByLocale } from "../../data";
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import type { Locale } from "../../data/types";
+
+export function getStaticPaths() {
+  return allLocales.map((locale) => ({ params: { locale } }));
+}
+
+const { locale } = Astro.params as { locale: Locale };
+const cv = cvByLocale[locale];
+---
+
+<SiteLayout cv={cv}>
+  <CvSite cv={cv} />
+</SiteLayout>

@@ -1,0 +1,40 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import TailorPanel from "../components/TailorPanel.astro";
+import { siteUrl } from "../data/site";
+import type { CV } from "../data/types";
+import "../styles/print.css";
+
+interface Props {
+  cv: CV;
+}
+
+const { cv } = Astro.props;
+const canonical = new URL(`/${cv.locale}/`, siteUrl).href;
+const pdfPath = `/cv/Roney-Oliveira-Software-Engineer-${cv.locale.slice(-2).toUpperCase()}.pdf`;
+const docxPath = `/cv/Roney-Oliveira-Software-Engineer-${cv.locale.slice(-2).toUpperCase()}.docx`;
+---
+
+<!doctype html>
+<html lang={cv.lang} data-theme="light">
+  <head>
+    <BaseHead cv={cv} path={`/${cv.locale}/print/`} noindex canonical={canonical} alternates={false} />
+  </head>
+  <body class="print-body">
+    <div class="print-bar">
+      <p class="print-bar__hint">{cv.labels.printHint}</p>
+      <button class="is-primary" type="button" id="print-action">{cv.labels.printAction}</button>
+      <a href={pdfPath} id="download-pdf" download>PDF</a>
+      <a href={docxPath} id="download-docx" download>DOCX</a>
+      <a href={`/${cv.locale}/`}>{cv.labels.backToSite}</a>
+    </div>
+
+    <TailorPanel cv={cv} />
+
+    <slot />
+
+    <script is:inline>
+      document.getElementById("print-action")?.addEventListener("click", () => window.print());
+    </script>
+  </body>
+</html>

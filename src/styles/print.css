@@ -1,0 +1,519 @@
+/*
+ * Print rendering. Designed sheet-first: a single linear column that an ATS
+ * parser reads top to bottom, using web-safe fonts and real bullet glyphs so
+ * the PDF text layer stays clean. On screen it previews as an A4 sheet.
+ */
+
+@import "./tokens.css";
+
+:root {
+  --sheet-width: 210mm;
+  --sheet-pad: 19mm;
+  --print-ink: #16191c;
+  --print-soft: #3b4249;
+  --print-faint: #5d666e;
+  --print-rule: #c9cfd4;
+  --print-accent: #0a7c72;
+}
+
+body.print-body {
+  background: #6f7479;
+  color: var(--print-ink);
+  font-family: Helvetica, Arial, sans-serif;
+  /* A ligature becomes its own run in the PDF text layer, so a parser that
+     joins runs with a space would read "Con fi abilidade". */
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "clig" 0;
+  font-size: 11pt;
+  line-height: 1.36;
+}
+
+.print-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  background: #2a2e32;
+  color: #e9edf0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+.print-bar__hint {
+  margin: 0 0.6rem 0 0;
+  color: #9aa4ac;
+}
+
+.print-bar a,
+.print-bar button {
+  padding: 0.35rem 0.85rem;
+  border: 1px solid #4a5157;
+  border-radius: 999px;
+  background: transparent;
+  color: #e9edf0;
+  font: inherit;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.print-bar a:hover,
+.print-bar button:hover {
+  border-color: var(--print-accent);
+  color: #6fe4d3;
+}
+
+.print-bar .is-primary {
+  border-color: var(--print-accent);
+  background: var(--print-accent);
+  color: #fff;
+}
+
+.sheet {
+  width: var(--sheet-width);
+  min-height: 297mm;
+  margin: 1.5rem auto;
+  padding: var(--sheet-pad);
+  background: #fff;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------------------------------------------------------------- masthead */
+
+.sheet__head {
+  padding-bottom: 7pt;
+  border-bottom: 1.6pt solid var(--print-accent);
+}
+
+.sheet__name {
+  margin: 0;
+  font-size: 20pt;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.sheet__role {
+  margin: 2pt 0 0;
+  color: var(--print-accent);
+  font-size: 12.5pt;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.sheet__headline {
+  margin: 1pt 0 0;
+  color: var(--print-soft);
+  font-size: 10pt;
+}
+
+.sheet__contact {
+  margin: 6pt 0 0;
+  color: var(--print-soft);
+  font-size: 10pt;
+  line-height: 1.55;
+  /* Last-resort guard: nothing may ever leave the sheet. */
+  overflow-wrap: anywhere;
+}
+
+.sheet__contact span {
+  white-space: nowrap;
+}
+
+/* The separator carries the only break opportunities in the line. */
+.sheet__contact .sep {
+  white-space: normal;
+  color: var(--print-rule);
+}
+
+/* ---------------------------------------------------------------- sections */
+
+.sheet__section {
+  margin-top: 6pt;
+  break-inside: auto;
+}
+
+.sheet__section h2 {
+  margin: 0 0 4pt;
+  padding-bottom: 2pt;
+  border-bottom: 0.6pt solid var(--print-rule);
+  color: var(--print-accent);
+  font-size: 13pt;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.sheet__summary p {
+  margin: 0 0 3pt;
+  color: var(--print-soft);
+  orphans: 2;
+  widows: 2;
+}
+
+.sheet__skills {
+  margin: 0;
+}
+
+.sheet__skills div {
+  margin-bottom: 3pt;
+  break-inside: avoid;
+}
+
+.sheet__skills dt {
+  display: inline;
+  font-weight: 700;
+}
+
+.sheet__skills dt::after {
+  content: ": ";
+}
+
+.sheet__skills dd {
+  display: inline;
+  margin: 0;
+  color: var(--print-soft);
+}
+
+/* ------------------------------------------------------------------ entries */
+
+/*
+ * Entries may span a page break: forbidding it pushes a whole block to the next
+ * page and leaves a band of white. What must never happen is a heading landing
+ * alone at the foot of a page, which the break-after rules below prevent.
+ */
+.sheet__entry {
+  margin-bottom: 4pt;
+  break-inside: auto;
+}
+
+.sheet__entry h3 {
+  margin: 0;
+  font-size: 11.5pt;
+  font-weight: 700;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.sheet__entry-meta {
+  break-after: avoid;
+  page-break-after: avoid;
+  margin: 0 0 2pt;
+  color: var(--print-faint);
+  font-size: 10pt;
+}
+
+.sheet__entry ul {
+  margin: 0;
+  padding-left: 13pt;
+  list-style: disc;
+}
+
+.sheet__entry li {
+  margin: 0;
+  color: var(--print-soft);
+  orphans: 2;
+  widows: 2;
+}
+
+.sheet__entry code {
+  font-family: "Courier New", monospace;
+  font-size: 10pt;
+}
+
+.sheet__stack {
+  margin: 1pt 0 0;
+  color: var(--print-faint);
+  font-size: 10pt;
+}
+
+.sheet__list {
+  margin: 0;
+  padding-left: 13pt;
+  list-style: disc;
+  color: var(--print-soft);
+}
+
+.sheet__list li {
+  margin: 0 0 1pt;
+  break-inside: avoid;
+}
+
+.sheet__note {
+  margin: 3pt 0 0;
+  color: var(--print-faint);
+  font-size: 10pt;
+}
+
+.sheet__keywords {
+  margin: 0;
+  color: var(--print-soft);
+  font-size: 10pt;
+}
+
+.sheet a {
+  color: var(--print-ink);
+  text-decoration: none;
+}
+
+/* -------------------------------------------------------------------- print */
+
+@page {
+  size: A4;
+  margin: 19mm;
+}
+
+@media print {
+  body.print-body {
+    background: #fff;
+    font-size: 11pt;
+  }
+
+  .print-bar {
+    display: none !important;
+  }
+
+  .sheet {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .sheet__head {
+    break-after: avoid;
+  }
+
+  a[href^="http"]::after {
+    content: "";
+  }
+}
+
+/* ------------------------------------------------------- painel de adaptação */
+
+.tailor {
+  width: var(--sheet-width);
+  margin: 1.2rem auto -0.6rem;
+  font-family: var(--font-body);
+}
+
+.tailor__box {
+  border: 1px solid #3a4046;
+  border-radius: 6px;
+  background: #22262a;
+  color: #e9edf0;
+}
+
+.tailor__summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+
+.tailor__badge {
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #16342f;
+  color: #6fe4d3;
+  font-size: 0.66rem;
+}
+
+.tailor__body {
+  padding: 0 0.9rem 0.9rem;
+}
+
+.tailor__hint,
+.tailor__note {
+  margin: 0 0 0.6rem;
+  color: #9aa4ac;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.tailor__input {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid #3a4046;
+  border-radius: 4px;
+  background: #171a1d;
+  color: #e9edf0;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.tailor__actions {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.7rem 0 0;
+}
+
+.tailor__button {
+  padding: 0.45rem 1rem;
+  border: 1px solid #4a5157;
+  border-radius: 999px;
+  background: transparent;
+  color: #e9edf0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.tailor__button.is-primary {
+  border-color: var(--print-accent);
+  background: var(--print-accent);
+  color: #fff;
+}
+
+.tailor__report {
+  margin-top: 0.9rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid #3a4046;
+  font-size: 0.8rem;
+}
+
+.tailor__switched {
+  margin: 0 0 0.6rem;
+  padding: 0.4rem 0.6rem;
+  border-left: 2px solid #6fe4d3;
+  background: #16342f;
+  color: #b7f2e8;
+  font-size: 0.76rem;
+}
+
+.tailor__score {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0 0 0.6rem;
+}
+
+.tailor__score strong {
+  color: #6fe4d3;
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+}
+
+.tailor__score span {
+  color: #9aa4ac;
+  font-size: 0.76rem;
+}
+
+.tailor__line {
+  margin: 0 0 0.4rem;
+  color: #cdd5db;
+  line-height: 1.5;
+}
+
+.tailor__missing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0 0 0.6rem;
+  padding: 0;
+  list-style: none;
+}
+
+.tailor__missing li {
+  padding: 0.2rem 0.5rem;
+  border: 1px solid #4a5157;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+
+.tailor__missing span {
+  color: #6fe4d3;
+}
+
+@media (max-width: 220mm) {
+  .tailor {
+    width: auto;
+    margin: 1rem;
+  }
+}
+
+@media print {
+  .tailor {
+    display: none !important;
+  }
+}
+
+.tailor__check {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  cursor: pointer;
+  color: #e9edf0;
+  font-size: 0.8rem;
+}
+
+.tailor__check b {
+  color: #6fe4d3;
+}
+
+.tailor__title-row {
+  margin: 0.8rem 0 0;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid #3a4046;
+  border-radius: 4px;
+  background: #1b1f22;
+}
+
+.tailor__note--tight {
+  display: block;
+  margin: 0.4rem 0 0;
+  font-size: 0.72rem;
+}
+
+.tailor__score strong[data-verdict="fraco"] { color: #f2a25c; }
+.tailor__score strong[data-verdict="médio"] { color: #f2d55c; }
+.tailor__score small { color: #74838f; font-size: 0.68rem; }
+
+.tailor__field {
+  display: block;
+  margin: 0 0 0.6rem;
+}
+
+.tailor__field span {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: #9aa4ac;
+  font-size: 0.74rem;
+}
+
+input.tailor__input {
+  font-size: 0.8rem;
+}
+
+/* Screen-only mark showing what the posting moved forward. */
+.sheet__skill.is-promoted {
+  background: #d8f3ee;
+  box-shadow: 0 0 0 2px #d8f3ee;
+  border-radius: 2px;
+}
+
+@media print {
+  .sheet__skill.is-promoted {
+    background: none;
+    box-shadow: none;
+  }
+}

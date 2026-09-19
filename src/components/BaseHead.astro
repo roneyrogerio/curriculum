@@ -1,0 +1,132 @@
+---
+import { jsonForScript } from "../lib/markup";
+import { siteUrl } from "../data/site";
+import type { CV } from "../data/types";
+
+interface Props {
+  cv: CV;
+  path: string;
+  noindex?: boolean;
+  canonical?: string;
+  /** Noindex pages omit hreflang: the alternates would not link back to them. */
+  alternates?: boolean;
+}
+
+const { cv, path, noindex = false, canonical, alternates: withAlternates = true } = Astro.props;
+
+const canonicalUrl = canonical ?? new URL(path, siteUrl).href;
+const ogImage = new URL("/og.png", siteUrl).href;
+
+const alternates = [
+  { hreflang: "pt-BR", href: new URL("/pt-br/", siteUrl).href },
+  { hreflang: "en-US", href: new URL("/en-us/", siteUrl).href },
+  { hreflang: "x-default", href: `${siteUrl}/` }
+];
+
+const personId = `${siteUrl}/#person`;
+
+const schema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": personId,
+      name: cv.name,
+      givenName: "Roney",
+      familyName: "de Oliveira",
+      jobTitle: cv.role,
+      description: cv.seoDescription,
+      email: `mailto:${cv.contact.email}`,
+      telephone: cv.contact.phoneHref,
+      url: siteUrl,
+      image: ogImage,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: cv.contact.addressLocality,
+        addressRegion: cv.contact.addressRegion,
+        addressCountry: cv.contact.addressCountry
+      },
+      knowsLanguage: cv.languages.map((language) => language.name),
+      knowsAbout: cv.keywords,
+      sameAs: [cv.contact.linkedin, cv.contact.github],
+      worksFor: {
+        "@type": "Organization",
+        name: cv.positions[0].company
+      },
+      hasOccupation: cv.positions.map((position) => ({
+        "@type": "Occupation",
+        name: position.title,
+        occupationLocation: { "@type": "Place", name: position.location }
+      })),
+      alumniOf: cv.education.map((entry) => ({
+        "@type": "EducationalOrganization",
+        name: entry.institution
+      })),
+      hasCredential: cv.certifications.map((certification) => ({
+        "@type": "EducationalOccupationalCredential",
+        name: certification.name,
+        credentialCategory: "certificate",
+        recognizedBy: { "@type": "Organization", name: certification.issuer }
+      }))
+    },
+    {
+      "@type": "ProfilePage",
+      "@id": `${canonicalUrl}#profile`,
+      url: canonicalUrl,
+      name: cv.seoTitle,
+      description: cv.seoDescription,
+      inLanguage: cv.lang,
+      mainEntity: { "@id": personId },
+      about: { "@id": personId }
+    }
+  ]
+};
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{cv.seoTitle}</title>
+<meta name="description" content={cv.seoDescription} />
+<meta name="author" content={cv.name} />
+<link rel="canonical" href={canonicalUrl} />
+
+{noindex
+  ? <meta name="robots" content="noindex, follow" />
+  : <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />}
+
+{withAlternates &&
+  alternates.map((alternate) => (
+    <link rel="alternate" hreflang={alternate.hreflang} href={alternate.href} />
+  ))}
+
+<meta property="og:type" content="profile" />
+<meta property="og:site_name" content={cv.name} />
+<meta property="og:title" content={cv.seoTitle} />
+<meta property="og:description" content={cv.seoDescription} />
+<meta property="og:url" content={canonicalUrl} />
+<meta property="og:locale" content={cv.lang.replace("-", "_")} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="profile:first_name" content="Roney" />
+<meta property="profile:last_name" content="de Oliveira" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={cv.seoTitle} />
+<meta name="twitter:description" content={cv.seoDescription} />
+<meta name="twitter:image" content={ogImage} />
+
+<meta name="theme-color" content="#0a7c72" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#0b0f12" media="(prefers-color-scheme: dark)" />
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="sitemap" href="/sitemap.xml" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+/>
+
+<script is:inline type="application/ld+json" set:html={jsonForScript(schema)} />

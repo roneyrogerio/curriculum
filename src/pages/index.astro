@@ -1,15 +1,123 @@
 ---
+import { jsonForScript } from "../lib/markup";
+/*
+ * Language selector, and the x-default target.
+ *
+ * Google asks sites not to redirect automatically between language versions,
+ * because that stops users and crawlers from reaching the other versions:
+ * Googlebot crawls from the USA and sends no Accept-Language header, so
+ * detection would always resolve to the same version. The page suggests a
+ * language instead of forcing one.
+ */
+import { cvByLocale } from "../data";
+import { siteUrl } from "../data/site";
+import "../styles/site.css";
+
+const options = [
+  {
+    locale: "pt-br" as const,
+    code: "PT-BR",
+    label: "Português",
+    note: "Currículo completo em português",
+    lang: "pt-BR"
+  },
+  {
+    locale: "en-us" as const,
+    code: "EN-US",
+    label: "English",
+    note: "Full resume in English",
+    lang: "en-US"
+  }
+];
+
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${siteUrl}/#website`,
+  url: `${siteUrl}/`,
+  name: "Roney de Oliveira",
+  inLanguage: ["pt-BR", "en-US"],
+  about: { "@id": `${siteUrl}/#person` }
+};
 ---
 
+<!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="refresh" content="0;url=/pt-br/" />
-    <link rel="canonical" href="/pt-br/" />
-    <title>Redirecting to CV</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Roney de Oliveira — Software Engineer | Currículo PT-BR / EN-US</title>
+    <meta
+      name="description"
+      content="Currículo de Roney de Oliveira, Software Engineer backend, full stack e DevOps. Disponível em português e inglês. Resume available in Portuguese and English."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={`${siteUrl}/`} />
+    <link rel="alternate" hreflang="pt-BR" href={`${siteUrl}/pt-br/`} />
+    <link rel="alternate" hreflang="en-US" href={`${siteUrl}/en-us/`} />
+    <link rel="alternate" hreflang="x-default" href={`${siteUrl}/`} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Roney de Oliveira — Software Engineer" />
+    <meta property="og:url" content={`${siteUrl}/`} />
+    <meta property="og:image" content={`${siteUrl}/og.png`} />
+    <meta name="theme-color" content="#0a7c72" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0b0f12" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap.xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+    />
+    <script is:inline type="application/ld+json" set:html={jsonForScript(schema)} />
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme");
+          if (stored === "light" || stored === "dark") document.documentElement.dataset.theme = stored;
+        } catch (error) {
+          /* storage blocked; the system preference still applies */
+        }
+      })();
+    </script>
   </head>
-  <body>
-    <p>Ir para <a href="/pt-br/">versao em portugues</a>.</p>
-    <p>Go to <a href="/en-us/">English version</a>.</p>
+  <body class="gate-body">
+    <main class="gate">
+      <p class="eyebrow">Curriculum vitae</p>
+      <h1 class="gate__name">{cvByLocale["pt-br"].name}</h1>
+      <p class="gate__role">Software Engineer · Backend · Full Stack · DevOps</p>
+
+      <ul class="gate__options">
+        {options.map((option) => (
+          <li>
+            <a class="gate__option" href={`/${option.locale}/`} hreflang={option.lang} lang={option.lang}>
+              <span class="gate__code">{option.code}</span>
+              <span class="gate__label">{option.label}</span>
+              <span class="gate__note">{option.note}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      <p class="gate__foot">
+        <a href="/pt-br/print/">PDF / DOCX</a>
+        <span aria-hidden="true">·</span>
+        <a href="https://github.com/roneyrogerio" rel="noopener">GitHub</a>
+        <span aria-hidden="true">·</span>
+        <a href="https://www.linkedin.com/in/roneyrogerio/" rel="noopener">LinkedIn</a>
+      </p>
+    </main>
+
+    <script is:inline>
+      /* Suggests a language without redirecting: both versions stay reachable. */
+      (function () {
+        var wantsEnglish = !(navigator.language || "pt").toLowerCase().startsWith("pt");
+        var target = document.querySelector(wantsEnglish ? '[hreflang="en-US"]' : '[hreflang="pt-BR"]');
+        if (target && target.classList.contains("gate__option")) {
+          target.classList.add("is-suggested");
+        }
+      })();
+    </script>
   </body>
 </html>

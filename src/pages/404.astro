@@ -1,0 +1,45 @@
+---
+import { siteUrl } from "../data/site";
+import "../styles/site.css";
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Página não encontrada — Roney de Oliveira</title>
+    <meta name="robots" content="noindex, follow" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+    />
+  </head>
+  <body class="gate-body">
+    <main class="gate">
+      <p class="eyebrow">404</p>
+      <h1 class="gate__name">Página não encontrada</h1>
+      <p class="gate__role">This page does not exist</p>
+      <ul class="gate__options">
+        <li>
+          <a class="gate__option" href="/pt-br/" hreflang="pt-BR" lang="pt-BR">
+            <span class="gate__code">PT-BR</span>
+            <span class="gate__label">Português</span>
+            <span class="gate__note">Ir para o currículo</span>
+          </a>
+        </li>
+        <li>
+          <a class="gate__option" href="/en-us/" hreflang="en-US" lang="en-US">
+            <span class="gate__code">EN-US</span>
+            <span class="gate__label">English</span>
+            <span class="gate__note">Go to the resume</span>
+          </a>
+        </li>
+      </ul>
+      <p class="gate__foot"><a href={`${siteUrl}/`}>roneyrogerio.dev</a></p>
+    </main>
+  </body>
+</html>

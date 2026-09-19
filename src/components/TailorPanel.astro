@@ -1,0 +1,387 @@
+---
+import { jsonForScript } from "../lib/markup";
+/*
+ * Tailors the printed sheet to a job posting, in the browser.
+ *
+ * It never writes content: it reorders the elements already on the page, so
+ * the tailored sheet cannot say anything the original does not. Terms the
+ * posting wants and the CV lacks are reported instead of inserted.
+ */
+import type { CV } from "../data/types";
+
+interface Props {
+  cv: CV;
+}
+
+const { cv } = Astro.props;
+const { labels } = cv;
+---
+
+<aside class="tailor" id="tailor">
+  <details class="tailor__box">
+    <summary class="tailor__summary">
+      <span>{labels.tailorTitle}</span>
+      <span class="tailor__badge">{labels.tailorGuarantee}</span>
+    </summary>
+
+    <div class="tailor__body">
+      <p class="tailor__hint">{labels.tailorHint}</p>
+
+      <label class="tailor__field">
+        <span>{labels.tailorTitleField}</span>
+        <input type="text" id="tailor-title-input" class="tailor__input" placeholder={labels.tailorTitlePlaceholder} />
+      </label>
+
+      <textarea
+        id="tailor-input"
+        class="tailor__input"
+        rows="7"
+        placeholder={labels.tailorPlaceholder}
+        aria-label={labels.tailorTitle}></textarea>
+
+      <p class="tailor__actions">
+        <button type="button" id="tailor-apply" class="tailor__button is-primary">{labels.tailorApply}</button>
+        <button type="button" id="tailor-reset" class="tailor__button">{labels.tailorReset}</button>
+      </p>
+
+      <p class="tailor__title-row" id="tailor-title-row" hidden>
+        <label class="tailor__check">
+          <input type="checkbox" id="tailor-title-use" checked />
+          <span>{labels.tailorTitleUse}: <b id="tailor-title-value"></b></span>
+        </label>
+        <span class="tailor__note tailor__note--tight">{labels.tailorTitleNote}</span>
+      </p>
+
+      <div id="tailor-report" class="tailor__report" hidden></div>
+    </div>
+  </details>
+</aside>
+
+<script type="application/json" id="tailor-cv" set:html={jsonForScript(cv)}></script>
+<script type="application/json" id="tailor-labels" set:html={jsonForScript(labels)}></script>
+
+<script>
+  import { cvByLocale } from "../data";
+  import { detectLocale } from "../lib/language";
+  import { headlineOf } from "../lib/headline";
+  import { tailorCv } from "../lib/tailor";
+  import type { CV, Locale } from "../data/types";
+
+  const STORAGE_KEY = "tailor:posting";
+
+  const cv = JSON.parse(document.getElementById("tailor-cv")!.textContent!) as CV;
+  const labels = JSON.parse(document.getElementById("tailor-labels")!.textContent!) as CV["labels"];
+  const input = document.getElementById("tailor-input") as HTMLTextAreaElement;
+  const titleInput = document.getElementById("tailor-title-input") as HTMLInputElement;
+  const reportBox = document.getElementById("tailor-report") as HTMLElement;
+  const details = document.getElementById("tailor")!.querySelector("details") as HTMLDetailsElement;
+  const titleRow = document.getElementById("tailor-title-row") as HTMLElement;
+  const titleUse = document.getElementById("tailor-title-use") as HTMLInputElement;
+  const titleValue = document.getElementById("tailor-title-value") as HTMLElement;
+  const roleNode = document.querySelector("[data-role]") as HTMLElement | null;
+  const originalRole = roleNode?.textContent ?? "";
+  let suggestedTitle: string | null = null;
+  let tailored: CV | null = null;
+
+  const pdfLink = document.getElementById("download-pdf") as HTMLAnchorElement | null;
+  const docxLink = document.getElementById("download-docx") as HTMLAnchorElement | null;
+  const originalPdf = { href: pdfLink?.getAttribute("href") ?? "", text: pdfLink?.textContent ?? "PDF" };
+  const originalDocx = { href: docxLink?.getAttribute("href") ?? "", text: docxLink?.textContent ?? "DOCX" };
+
+  /** The CV as the sheet currently shows it, target role included. */
+  function sheetCv(): CV {
+    const base = tailored ?? cv;
+    return titleUse.checked && suggestedTitle ? { ...base, role: suggestedTitle } : base;
+  }
+
+  function download(blob: Blob, name: string) {
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = name;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function fileStem() {
+    const locale = currentLocale().slice(-2).toUpperCase();
+    const slug = (suggestedTitle ?? "vaga")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 28);
+    return `Roney-Oliveira-Software-Engineer-${locale}-${slug}`;
+  }
+
+  /*
+   * The pre-generated files in /cv are the untailored resume, so while a
+   * posting is applied they would hand over the wrong document. The buttons are
+   * rewired to produce what the sheet actually shows.
+   */
+  function wireDownloads(isTailored: boolean) {
+    if (pdfLink) {
+      if (isTailored) {
+        pdfLink.removeAttribute("href");
+        pdfLink.removeAttribute("download");
+        pdfLink.setAttribute("role", "button");
+        pdfLink.textContent = labels.tailorDownloadPdf;
+        pdfLink.onclick = async (event) => {
+          event.preventDefault();
+          const previous = pdfLink.textContent;
+          pdfLink.textContent = "...";
+          try {
+            // Loaded on demand: only someone tailoring needs the PDF writer.
+            const { buildPdf } = await import("../lib/pdf");
+            const bytes = await buildPdf(sheetCv());
+            download(new Blob([bytes as unknown as BlobPart], { type: "application/pdf" }), `${fileStem()}.pdf`);
+          } finally {
+            pdfLink.textContent = previous;
+          }
+        };
+      } else {
+        pdfLink.setAttribute("href", originalPdf.href);
+        pdfLink.setAttribute("download", "");
+        pdfLink.removeAttribute("role");
+        pdfLink.textContent = originalPdf.text;
+        pdfLink.onclick = null;
+      }
+    }
+
+    if (docxLink) {
+      if (isTailored) {
+        docxLink.removeAttribute("href");
+        docxLink.removeAttribute("download");
+        docxLink.setAttribute("role", "button");
+        docxLink.textContent = labels.tailorDownloadDocx;
+        docxLink.onclick = async (event) => {
+          event.preventDefault();
+          const previous = docxLink.textContent;
+          docxLink.textContent = "...";
+          try {
+            // Loaded on demand: the builder is only needed once someone tailors.
+            const { docxBlob } = await import("../lib/docx");
+            download(await docxBlob(sheetCv()), `${fileStem()}.docx`);
+          } finally {
+            docxLink.textContent = previous;
+          }
+        };
+      } else {
+        docxLink.setAttribute("href", originalDocx.href);
+        docxLink.setAttribute("download", "");
+        docxLink.removeAttribute("role");
+        docxLink.textContent = originalDocx.text;
+        docxLink.onclick = null;
+      }
+    }
+  }
+
+  function applyTitle() {
+    if (!roleNode) return;
+    roleNode.textContent = titleUse.checked && suggestedTitle ? suggestedTitle : originalRole;
+  }
+
+  /** Moves an element to the end of its parent; nothing is created or removed. */
+  const push = (parent: Element, child: Element | null) => child && parent.appendChild(child);
+
+  function applyOrder(tailored: CV, report?: { promoted: string[] }) {
+    // Rewritten from the tailored lists, which hold the same items in a new
+    // order: no text from the posting reaches the headline.
+    const headline = document.querySelector("[data-headline]");
+    if (headline) headline.textContent = headlineOf(tailored);
+
+    const groups = document.querySelector("[data-groups]");
+    if (groups) {
+      const promoted = new Set(report?.promoted ?? []);
+      tailored.skillGroups.forEach((group) => {
+        const node = groups.querySelector(`[data-group="${CSS.escape(group.title)}"]`);
+        push(groups, node);
+        const dd = node?.querySelector("[data-skills]");
+        if (!dd) return;
+
+        const spans = new Map(
+          [...dd.querySelectorAll<HTMLElement>(".sheet__skill")].map((span) => [span.dataset.skill!, span])
+        );
+        const separators = [...dd.querySelectorAll(".sheet__sep")];
+        const stop = dd.querySelector(".sheet__stop");
+
+        dd.textContent = "";
+        group.skills.forEach((skill, index) => {
+          if (index > 0) push(dd, separators.pop()!);
+          const span = spans.get(skill.name)!;
+          // Marked on screen only, so the adaptation is visible; print and the
+          // exported files show the plain sheet.
+          span.classList.toggle("is-promoted", promoted.has(skill.name));
+          push(dd, span);
+        });
+        push(dd, stop);
+      });
+    }
+
+    tailored.positions.forEach((position, index) => {
+      const list = document.querySelector(`[data-position="${index}"] [data-highlights]`);
+      if (!list) return;
+      position.highlights.forEach((highlight) => {
+        push(list, list.querySelector(`[data-highlight="${CSS.escape(highlight)}"]`));
+      });
+    });
+
+    const projectsSection = document.querySelector("[data-projects]");
+    if (projectsSection) {
+      tailored.projects.forEach((project) => {
+        const original = cv.projects.findIndex((candidate) => candidate.name === project.name);
+        const node = projectsSection.querySelector(`[data-project="${original}"]`);
+        push(projectsSection, node);
+        const list = node?.querySelector("[data-highlights]");
+        if (!list) return;
+        project.highlights.forEach((highlight) => {
+          push(list, list.querySelector(`[data-highlight="${CSS.escape(highlight)}"]`));
+        });
+      });
+    }
+  }
+
+  /**
+   * Built from DOM nodes rather than an HTML string. The terms come from text
+   * the visitor pasted, and although the tokeniser strips markup characters,
+   * that is a side effect of tokenising, not a security boundary to lean on.
+   */
+  function renderReport(
+    report: ReturnType<typeof tailorCv>["report"],
+    switched: boolean,
+    tailoredOrder: string[]
+  ) {
+    const fragment = document.createDocumentFragment();
+
+    const line = (className: string, label: string, value?: string) => {
+      const paragraph = document.createElement("p");
+      paragraph.className = className;
+      if (label) {
+        const strong = document.createElement("b");
+        strong.textContent = value ? `${label}:` : label;
+        paragraph.append(strong);
+      }
+      if (value) paragraph.append(document.createTextNode(` ${value}`));
+      fragment.append(paragraph);
+      return paragraph;
+    };
+
+    if (switched) line("tailor__switched", labels.tailorSwitched);
+
+    const score = document.createElement("p");
+    score.className = "tailor__score";
+    const strong = document.createElement("strong");
+    strong.dataset.verdict = report.verdict;
+    strong.textContent = `${report.technicalCoverage.toFixed(0)}%`;
+    const caption = document.createElement("span");
+    caption.textContent = labels.tailorCoverage;
+    const small = document.createElement("small");
+    small.textContent = labels.tailorVerdict;
+    caption.append(document.createElement("br"), small);
+    score.append(strong, caption);
+    fragment.append(score);
+
+    line("tailor__line", labels.tailorOrder, tailoredOrder.join(" \u2192 "));
+    if (report.promoted.length) {
+      line("tailor__line", labels.tailorPromoted, report.promoted.join(", "));
+    }
+
+    if (report.missing.length) {
+      line("tailor__line", labels.tailorMissing);
+      const list = document.createElement("ul");
+      list.className = "tailor__missing";
+      for (const entry of report.missing.slice(0, 14)) {
+        const item = document.createElement("li");
+        const count = document.createElement("span");
+        count.textContent = `${entry.count}x`;
+        item.append(count, document.createTextNode(` ${entry.term}`));
+        list.append(item);
+      }
+      fragment.append(list);
+      line("tailor__note", labels.tailorMissingHint);
+    } else {
+      line("tailor__line", labels.tailorNone);
+    }
+
+    reportBox.replaceChildren(fragment);
+    reportBox.hidden = false;
+  }
+
+  function currentLocale(): Locale {
+    return document.documentElement.lang.toLowerCase() === "en-us" ? "en-us" : "pt-br";
+  }
+
+  function apply(posting: string, switched = false) {
+    const jobTitle = titleInput.value.trim();
+    // Either field is enough: a title alone already says what the job is.
+    if (!posting.trim() && !jobTitle) return;
+
+    const wanted = detectLocale(`${jobTitle} ${posting}`);
+    if (wanted !== currentLocale()) {
+      // The posting's language decides which resume is generated.
+      try {
+        sessionStorage.setItem(STORAGE_KEY, posting);
+        sessionStorage.setItem(`${STORAGE_KEY}:title`, jobTitle);
+      } catch (error) {
+        /* storage blocked; the redirect still carries nothing, so we stay put */
+        return;
+      }
+      window.location.href = `/${wanted}/print/`;
+      return;
+    }
+
+    const result = tailorCv(cvByLocale[currentLocale()], {
+      title: jobTitle || undefined,
+      description: posting
+    });
+    tailored = result.cv;
+    const report = result.report;
+    applyOrder(tailored, result.report);
+
+    suggestedTitle = report.suggestedTitle;
+    if (suggestedTitle) {
+      titleValue.textContent = suggestedTitle;
+      titleRow.hidden = false;
+      applyTitle();
+    } else {
+      titleRow.hidden = true;
+    }
+
+    renderReport(report, switched, tailored.skillGroups.map((group) => group.title));
+    wireDownloads(true);
+  }
+
+  document.getElementById("tailor-apply")?.addEventListener("click", () => apply(input.value));
+  document.getElementById("tailor-reset")?.addEventListener("click", () => {
+    input.value = "";
+    titleInput.value = "";
+    reportBox.hidden = true;
+    try {
+      sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(`${STORAGE_KEY}:title`);
+    } catch (error) {
+      /* ignore */
+    }
+    suggestedTitle = null;
+    tailored = null;
+    titleRow.hidden = true;
+    applyTitle();
+    applyOrder(cv);
+    wireDownloads(false);
+  });
+
+  titleUse.addEventListener("change", applyTitle);
+
+  // Arrived here because the posting was in the other language.
+  try {
+    const carried = sessionStorage.getItem(STORAGE_KEY);
+    if (carried) {
+      input.value = carried;
+      titleInput.value = sessionStorage.getItem(`${STORAGE_KEY}:title`) ?? "";
+      details.open = true;
+      apply(carried, true);
+    }
+  } catch (error) {
+    /* ignore */
+  }
+</script>

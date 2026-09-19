@@ -2,3 +2,7 @@ node_modules/
 dist/
 .astro/
 .DS_Store
+
+# Gerados pelo build a partir de src/data, por isso fora do versionamento.
+public/cv/
+public/og.png

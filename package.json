@@ -5,16 +5,30 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "npm run generate && astro build",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "generate": "npm run export:og && npm run export:docx && npm run export:pdf",
+    "validate:ats": "tsx scripts/validate-ats.ts",
+    "export:og": "node scripts/export-og.mjs",
+    "export:docx": "tsx scripts/export-docx.ts",
+    "export:pdf": "tsx scripts/export-pdf.ts"
   },
   "dependencies": {
-    "astro": "^5.7.10",
-    "sharp": "^0.34.5"
+    "astro": "^7.3.3",
+    "stopword": "^3.1.5"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.8",
-    "typescript": "^5.9.3"
+    "@astrojs/check": "^0.9.10",
+    "@types/stopword": "^2.0.3",
+    "docx": "^9.7.1",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.3.289",
+    "sharp": "^0.35.4",
+    "tsx": "^4.23.13",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.1"
   }
 }

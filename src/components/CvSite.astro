@@ -1,0 +1,226 @@
+---
+import type { CV } from "../data/types";
+import { inlineCode } from "../lib/markup";
+import { headlineOf } from "../lib/headline";
+
+interface Props {
+  cv: CV;
+}
+
+const { cv } = Astro.props;
+const { labels, contact } = cv;
+
+const sections = [
+  { id: "summary", title: labels.summary },
+  { id: "skills", title: labels.skills },
+  { id: "experience", title: labels.experience },
+  { id: "projects", title: labels.projects },
+  { id: "education", title: labels.education },
+  { id: "certifications", title: labels.certifications },
+  { id: "languages", title: labels.languages }
+];
+
+const printPath = `/${cv.locale}/print/`;
+
+const contactItems = [
+  { key: "email", value: contact.email, href: `mailto:${contact.email}` },
+  { key: "tel", value: contact.phone, href: `tel:${contact.phoneHref}` },
+  { key: "www", value: "roneyrogerio.dev", href: contact.website },
+  { key: "github", value: "roneyrogerio", href: contact.github },
+  { key: "linkedin", value: "in/roneyrogerio", href: contact.linkedin },
+  { key: "local", value: contact.location }
+];
+---
+
+<div class="shell">
+  <aside class="rail" aria-hidden="true">
+    <span class="rail__mark">RO</span>
+    <ol class="rail__index">
+      {sections.map((section, index) => (
+        <li><a href={`#${section.id}`}>
+          <span class="rail__num">{String(index + 1).padStart(2, "0")}</span>
+          <span class="rail__label">{section.title}</span>
+        </a></li>
+      ))}
+    </ol>
+  </aside>
+
+  <main class="doc" id="content">
+    <header class="masthead">
+      <p class="eyebrow">{labels.targetRole}</p>
+      <h1 class="masthead__name">{cv.name}</h1>
+      <p class="masthead__role">{cv.role}</p>
+      <p class="masthead__headline">{headlineOf(cv)}</p>
+
+      <ul class="contact">
+        {contactItems.map((item) => (
+          <li class="contact__item">
+            <span class="contact__key">{item.key}</span>
+            {item.href
+              ? <a class="contact__value" href={item.href}>{item.value}</a>
+              : <span class="contact__value">{item.value}</span>}
+          </li>
+        ))}
+      </ul>
+
+      <p class="masthead__actions">
+        <a class="button button--primary" href={printPath}>{labels.print}</a>
+        <a class="button" href={`/cv/Roney-Oliveira-Software-Engineer-${cv.locale.slice(-2).toUpperCase()}.pdf`} download>PDF</a>
+        <a class="button" href={`/cv/Roney-Oliveira-Software-Engineer-${cv.locale.slice(-2).toUpperCase()}.docx`} download>DOCX</a>
+        <a class="button" href={contact.whatsapp} rel="noopener">WhatsApp</a>
+      </p>
+    </header>
+
+    <section class="section" id="summary" aria-labelledby="summary-title">
+      <h2 class="section__title" id="summary-title"><span class="section__num">01</span>{labels.summary}</h2>
+      <div class="section__body prose">
+        {cv.summary.map((paragraph) => <p>{paragraph}</p>)}
+      </div>
+    </section>
+
+    <section class="section" id="skills" aria-labelledby="skills-title">
+      <h2 class="section__title" id="skills-title"><span class="section__num">02</span>{labels.skills}</h2>
+      <div class="section__body">
+        <div class="skills">
+          {cv.skillGroups.map((group) => (
+            <div class="skills__group">
+              <h3 class="skills__title">{group.title}</h3>
+              <ul class="skills__list">
+                {group.skills.map((skill) => (
+                  <li class="skill">
+                    <span class="skill__name">{skill.name}</span>
+                    <span class="skill__meter" role="img" aria-label={`${labels.skillLevel} ${skill.level}/5`}>
+                      {[1, 2, 3, 4, 5].map((step) => (
+                        <span class={step <= skill.level ? "skill__step is-on" : "skill__step"}></span>
+                      ))}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="experience" aria-labelledby="experience-title">
+      <h2 class="section__title" id="experience-title"><span class="section__num">03</span>{labels.experience}</h2>
+      <div class="section__body">
+        <ol class="timeline">
+          {cv.positions.map((position) => (
+            <li class="entry">
+              <p class="entry__dates">
+                <time datetime={position.startDate}>{position.start}</time>
+                <span aria-hidden="true"> — </span>
+                <time datetime={position.endDate}>{position.end}</time>
+              </p>
+              <div class="entry__body">
+                <h3 class="entry__title">{position.title}</h3>
+                <p class="entry__meta">
+                  <span class="entry__company">{position.company}</span>
+                  <span class="entry__dot" aria-hidden="true">·</span>{position.employment}
+                  <span class="entry__dot" aria-hidden="true">·</span>{position.location}
+                </p>
+                <ul class="bullets">
+                  {position.highlights.map((highlight) => <li>{highlight}</li>)}
+                </ul>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <section class="section" id="projects" aria-labelledby="projects-title">
+      <h2 class="section__title" id="projects-title"><span class="section__num">04</span>{labels.projects}</h2>
+      <div class="section__body">
+        <div class="projects">
+          {cv.projects.map((project) => (
+            <article class="project">
+              <h3 class="project__name">{project.name}</h3>
+              <p class="project__context">{project.context}</p>
+              <ul class="bullets">
+                {project.highlights.map((highlight) => <li set:html={inlineCode(highlight)} />)}
+              </ul>
+              <ul class="stack">
+                {project.stack.map((item) => <li>{item}</li>)}
+              </ul>
+              {(project.repository || project.url) && (
+                <p class="project__link">
+                  {project.repository ? (
+                    <a href={project.repository} rel="noopener">{labels.repository} ↗</a>
+                  ) : (
+                    <a href={project.url} rel="noopener">{labels.liveSite} {project.url?.replace(/^https?:\/\//, "")} ↗</a>
+                  )}
+                </p>
+              )}
+            </article>
+          ))}
+        </div>
+        <p class="note">{cv.otherProjects}</p>
+      </div>
+    </section>
+
+    <section class="section" id="education" aria-labelledby="education-title">
+      <h2 class="section__title" id="education-title"><span class="section__num">05</span>{labels.education}</h2>
+      <div class="section__body">
+        <ul class="records">
+          {cv.education.map((entry) => (
+            <li class="record">
+              <p class="record__primary">{entry.degree}</p>
+              <p class="record__secondary">{entry.institution}</p>
+              <p class="record__meta">{entry.period}{entry.note ? ` · ${entry.note}` : ""}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="certifications" aria-labelledby="certifications-title">
+      <h2 class="section__title" id="certifications-title"><span class="section__num">06</span>{labels.certifications}</h2>
+      <div class="section__body">
+        <ul class="records">
+          {cv.certifications.map((certification) => (
+            <li class="record">
+              <p class="record__primary">{certification.name}</p>
+              <p class="record__secondary">{certification.issuer}</p>
+              <p class="record__meta">
+                {certification.issued}
+                {certification.credentialId ? ` · ID ${certification.credentialId}` : ""}
+              </p>
+            </li>
+          ))}
+        </ul>
+        <h3 class="subsection">{labels.courses}</h3>
+        <ul class="chips">
+          {cv.courses.map((course) => (
+            <li>{course.name} <span class="chips__meta">{course.workload}</span></li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="languages" aria-labelledby="languages-title">
+      <h2 class="section__title" id="languages-title"><span class="section__num">07</span>{labels.languages}</h2>
+      <div class="section__body">
+        <ul class="records records--inline">
+          {cv.languages.map((language) => (
+            <li class="record">
+              <p class="record__primary">{language.name}</p>
+              <p class="record__meta">{language.level}</p>
+            </li>
+          ))}
+        </ul>
+        <h3 class="subsection">{labels.keywords}</h3>
+        <ul class="chips chips--quiet">
+          {cv.keywords.map((keyword) => <li>{keyword}</li>)}
+        </ul>
+      </div>
+    </section>
+
+    <footer class="doc__footer">
+      <p>{cv.name} · {cv.role}</p>
+      <p><a href={printPath}>{labels.print} →</a></p>
+    </footer>
+  </main>
+</div>

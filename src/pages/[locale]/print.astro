@@ -1,0 +1,17 @@
+---
+import CvPrint from "../../components/CvPrint.astro";
+import { allLocales, cvByLocale } from "../../data";
+import PrintLayout from "../../layouts/PrintLayout.astro";
+import type { Locale } from "../../data/types";
+
+export function getStaticPaths() {
+  return allLocales.map((locale) => ({ params: { locale } }));
+}
+
+const { locale } = Astro.params as { locale: Locale };
+const cv = cvByLocale[locale];
+---
+
+<PrintLayout cv={cv}>
+  <CvPrint cv={cv} />
+</PrintLayout>

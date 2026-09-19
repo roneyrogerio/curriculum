@@ -1,0 +1,187 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import type { CV } from "../data/types";
+import "../styles/site.css";
+
+interface Props {
+  cv: CV;
+}
+
+const { cv } = Astro.props;
+const { labels } = cv;
+const path = `/${cv.locale}/`;
+const isPtBr = cv.locale === "pt-br";
+
+const themeOptions = [
+  { value: "auto", label: labels.themeAuto, icon: "◐" },
+  { value: "light", label: labels.themeLight, icon: "○" },
+  { value: "dark", label: labels.themeDark, icon: "●" }
+];
+---
+
+<!doctype html>
+<html lang={cv.lang}>
+  <head>
+    <BaseHead cv={cv} path={path} />
+    <script is:inline>
+      /* Applied before first paint so the stored theme never flashes. */
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme");
+          if (stored === "light" || stored === "dark") {
+            document.documentElement.dataset.theme = stored;
+          }
+        } catch (error) {
+          /* storage blocked; the system preference still applies */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">{isPtBr ? "Ir para o conteúdo" : "Skip to content"}</a>
+
+    <div class="toolbar">
+      <nav class="toolbar__group" aria-label={labels.languageSwitch}>
+        <a class="toolbar__link" href="/pt-br/" hreflang="pt-BR" aria-current={isPtBr ? "true" : undefined}>PT</a>
+        <a class="toolbar__link" href="/en-us/" hreflang="en-US" aria-current={!isPtBr ? "true" : undefined}>EN</a>
+        <a class="toolbar__link toolbar__link--accent" href={`/${cv.locale}/print/#tailor`}>
+          {isPtBr ? "VAGA" : "JOB"}
+        </a>
+      </nav>
+
+      <div class="toolbar__group">
+        <a class="toolbar__link" href={`/cv/Roney-Oliveira-Software-Engineer-${cv.locale.slice(-2).toUpperCase()}.pdf`} download>PDF</a>
+        <a class="toolbar__link" href={`/cv/Roney-Oliveira-Software-Engineer-${cv.locale.slice(-2).toUpperCase()}.docx`} download>DOCX</a>
+      </div>
+
+      <div class="toolbar__group" role="radiogroup" aria-label={labels.themeLabel} id="theme-switch">
+        {themeOptions.map((option) => (
+          <button
+            class="toolbar__theme"
+            type="button"
+            role="radio"
+            aria-checked={option.value === "auto" ? "true" : "false"}
+            aria-label={option.label}
+            title={option.label}
+            data-theme-value={option.value}
+          >
+            <span aria-hidden="true">{option.icon}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <slot />
+
+    <script is:inline>
+      (function () {
+        const root = document.documentElement;
+        const buttons = Array.from(document.querySelectorAll("[data-theme-value]"));
+
+        function currentTheme() {
+          try {
+            const stored = localStorage.getItem("theme");
+            if (stored === "light" || stored === "dark") return stored;
+          } catch (error) {
+            /* ignore */
+          }
+          return "auto";
+        }
+
+        function apply(theme) {
+          if (theme === "auto") {
+            delete root.dataset.theme;
+            try {
+              localStorage.removeItem("theme");
+            } catch (error) {
+              /* ignore */
+            }
+          } else {
+            root.dataset.theme = theme;
+            try {
+              localStorage.setItem("theme", theme);
+            } catch (error) {
+              /* ignore */
+            }
+          }
+          buttons.forEach((button) => {
+            button.setAttribute("aria-checked", button.dataset.themeValue === theme ? "true" : "false");
+          });
+        }
+
+        apply(currentTheme());
+        buttons.forEach((button) => {
+          button.addEventListener("click", () => apply(button.dataset.themeValue));
+        });
+
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!reduceMotion && "IntersectionObserver" in window) {
+          /* Only sections starting below the fold are hidden, so what is already
+             on screen never depends on the observer firing. */
+          const revealables = Array.from(document.querySelectorAll("main .section")).filter(
+            (element) => element.getBoundingClientRect().top > window.innerHeight * 0.9
+          );
+          revealables.forEach((element) => element.classList.add("is-revealable"));
+
+          /* Safety net: if anything keeps a section from being observed, show it. */
+          window.setTimeout(() => {
+            revealables.forEach((element) => element.classList.add("is-revealed"));
+          }, 2500);
+          const revealer = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add("is-revealed");
+                revealer.unobserve(entry.target);
+              });
+            },
+            { rootMargin: "0px 0px -8% 0px" }
+          );
+          revealables.forEach((element) => revealer.observe(element));
+        }
+
+        const links = Array.from(document.querySelectorAll(".rail__index a"));
+        const sections = Array.from(document.querySelectorAll("main .section"));
+
+        if (links.length && sections.length) {
+          /*
+           * Position based rather than IntersectionObserver: an observer band
+           * near the top of the viewport is never reached by the last section,
+           * because the page runs out of scroll first.
+           */
+          const activeSectionId = () => {
+            const documentHeight = document.documentElement.scrollHeight;
+            const atBottom = window.scrollY + window.innerHeight >= documentHeight - 2;
+            if (atBottom) return sections[sections.length - 1].id;
+
+            const line = window.scrollY + window.innerHeight * 0.3;
+            let current = sections[0].id;
+            for (const section of sections) {
+              if (section.getBoundingClientRect().top + window.scrollY <= line) current = section.id;
+            }
+            return current;
+          };
+
+          let queued = false;
+          const sync = () => {
+            queued = false;
+            const id = activeSectionId();
+            links.forEach((link) => {
+              link.classList.toggle("is-active", link.getAttribute("href") === "#" + id);
+            });
+          };
+
+          const onScroll = () => {
+            if (queued) return;
+            queued = true;
+            window.requestAnimationFrame(sync);
+          };
+
+          window.addEventListener("scroll", onScroll, { passive: true });
+          window.addEventListener("resize", onScroll, { passive: true });
+          sync();
+        }
+      })();
+    </script>
+  </body>
+</html>
