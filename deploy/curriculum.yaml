@@ -39,17 +39,33 @@ spec:
               type: RuntimeDefault
           ports:
             - containerPort: 8080
+          env:
+            # Injected at runtime from a Secret the pipeline writes, so the key
+            # is never baked into the image: the image is public on GHCR, and a
+            # build argument would sit readable in its layer history forever.
+            # `optional: true` keeps the site serving if the Secret is absent —
+            # only the tailoring route answers 503, instead of every page
+            # failing because one feature is unconfigured.
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openai-secret
+                  key: api-key
+                  optional: true
           resources:
             requests:
-              cpu: 25m
-              memory: 32Mi
-            limits:
-              cpu: 500m
+              # Raised from 25m/32Mi: the container is a Node process now, not
+              # NGINX serving files. The floor is what the runtime needs before
+              # it serves anything.
+              cpu: 100m
               memory: 128Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
           readinessProbe:
             httpGet:
               path: /pt-br/
-            initialDelaySeconds: 1
+            initialDelaySeconds: 3
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 3

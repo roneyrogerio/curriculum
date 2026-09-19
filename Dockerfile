@@ -3,18 +3,37 @@
 FROM --platform=$BUILDPLATFORM node:24-bookworm-slim AS builder
 WORKDIR /app
 
-ENV NODE_ENV=production
-
 COPY package*.json ./
+# The build needs the dev dependencies: the PDF, the DOCX and the OG image are
+# written from src/data by scripts that run before astro build.
 RUN npm ci --include=dev
 
 COPY . .
 RUN npm run build
 
-FROM nginxinc/nginx-unprivileged:1.27-alpine
+# Installed separately from the build tree so the runtime image carries only
+# what the server imports, without the compilers and exporters.
+FROM --platform=$BUILDPLATFORM node:24-bookworm-slim AS deps
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
 
-COPY deploy/nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
-COPY deploy/nginx/default.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /app/dist /usr/share/nginx/html
+FROM node:24-bookworm-slim
+WORKDIR /app
+
+ENV NODE_ENV=production
+# Knative routes to this port, and the container listens on every interface
+# because the request arrives from the queue-proxy, not from localhost.
+ENV HOST=0.0.0.0
+ENV PORT=8080
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY package.json ./
+
+# The image ships no OpenAI key. It is injected at runtime from a Kubernetes
+# Secret, so the published image stays exactly as public as the repository.
+USER node
 
 EXPOSE 8080
+CMD ["node", "./dist/server/entry.mjs"]

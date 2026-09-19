@@ -14,9 +14,11 @@
     "validate:ats": "tsx scripts/validate-ats.ts",
     "export:og": "node scripts/export-og.mjs",
     "export:docx": "tsx scripts/export-docx.ts",
-    "export:pdf": "tsx scripts/export-pdf.ts"
+    "export:pdf": "tsx scripts/export-pdf.ts",
+    "verify:headers": "tsx scripts/verify-headers.ts"
   },
   "dependencies": {
+    "@astrojs/node": "^11.1.6",
     "astro": "^7.3.3",
     "stopword": "^3.1.5"
   },
