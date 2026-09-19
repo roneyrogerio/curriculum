@@ -43,6 +43,27 @@ export default defineConfig({
    */
   adapter: node({ mode: "standalone" }),
 
+  security: {
+    /*
+     * Which hostnames may speak for this site, and over what.
+     *
+     * Astro checks the Origin header of a form POST against the URL it computed
+     * for the request, and refuses when they differ. Behind Cloudflare they
+     * always differ: TLS ends at the edge, so the pod is handed plain HTTP and
+     * computes `http://…`, while the browser sends `https://…`. Every
+     * submission came back "Cross-site POST form submissions are forbidden".
+     *
+     * `x-forwarded-proto` carries the truth, and Astro only trusts it for hosts
+     * named here — an allowlist, because a forwarded header is written by
+     * whoever is in front and can be forged by anyone the proxy does not stop.
+     * The protocol has to be stated, or the forwarded one is ignored.
+     */
+    allowedDomains: [
+      { hostname: "roneyrogerio.dev", protocol: "https" },
+      { hostname: "localhost", protocol: "http" }
+    ]
+  },
+
   /*
    * `security.csp` stays off, and the policy lives in src/middleware.ts.
    *
