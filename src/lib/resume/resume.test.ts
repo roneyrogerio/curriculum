@@ -36,6 +36,14 @@ function fullPlan(overrides: Partial<ResumePlan> = {}): ResumePlan {
     certificationIds: facts.certifications.map((fact) => fact.id),
     courseIds: facts.courses.map((fact) => fact.id),
     rationale: "kept everything",
+    posting: {
+      summary: "Backend sênior em Go, fintech, Brasil, remoto",
+      company: "não informado",
+      advertisedLevel: "pleno",
+      actualLevel: "sênior",
+      fit: 0.8,
+      fitNote: "Go e microsserviços em produção"
+    },
     ...overrides
   };
 }
@@ -130,6 +138,29 @@ describe("facts the model never gets to write", () => {
     expect(text).toContain(cv.positions[0].start);
     expect(text).toContain(cv.certifications[0].credentialId!);
     expect(text).toContain(cv.education[0].institution);
+  });
+
+  it("never prints how the posting was read", () => {
+    /*
+     * A leitura da vaga e o que ela paga são sobre a vaga, não sobre o
+     * candidato, e existem para a pessoa decidir se responde ao anúncio. Num
+     * documento enviado a um empregador seriam, na melhor das hipóteses,
+     * estranhos. A garantia é estrutural: composeDocument não lê o campo.
+     */
+    const plan = fullPlan({
+      posting: {
+        summary: "resumo que não deve aparecer",
+        company: "empresa secreta",
+        advertisedLevel: "pleno",
+        actualLevel: "sênior",
+        fit: 0.9,
+        fitNote: "palpite"
+      }
+    });
+    const text = textOfDocument(composeDocument(cv, plan)).join(" ");
+    expect(text).not.toContain("resumo que não deve aparecer");
+    expect(text).not.toContain("palpite");
+    expect(text).not.toContain("empresa secreta");
   });
 
   it("carries the advertised title, which is the one string from the posting", () => {

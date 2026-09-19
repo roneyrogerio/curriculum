@@ -78,6 +78,17 @@ never introduced.
   lines in the document.
 - Keep the jobs in the order given: that order is the career timeline, and
   changing it misrepresents it. An unrelated job stays, with fewer bullets.
+- Read the posting for the salary step, without naming any figure. Write the
+  short brief a market search will be run with — level, stack, domain, country,
+  remote or not — and price the responsibilities rather than the label: a
+  mid-level advertisement that asks for architecture decisions, production
+  on-call or mentoring is a senior job advertised cheaply, and it holds
+  downward too. Name both levels so the gap shows.
+- Score how well this candidate matches what the job asks, from 0 to 100. That
+  score also places the ask inside whatever band the search finds, so be honest
+  in both directions: a specific, demonstrated match earns the top, a thin one
+  does not, and an ask above the band ends a screening rather than opening a
+  negotiation. None of this is printed; it is for the candidate alone.
 - Write in the language of the posting. If the posting is in English, every
   rewritten sentence is in English, even though the facts may be in Portuguese.
 

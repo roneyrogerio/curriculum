@@ -30,6 +30,10 @@ import { MAX_POSTING, type tailorResume } from "../../lib/resume";
 import "../../styles/print.css";
 import "../../styles/tailor.css";
 
+/** As fontes da pesquisa: abrem em aba nova e não repassam relevância. */
+const away = (href: string) =>
+  /^(mailto|tel):/i.test(href) ? {} : { target: "_blank", rel: "noopener noreferrer nofollow" };
+
 export const prerender = false;
 
 let result: Awaited<ReturnType<typeof tailorResume>> | null = null;
@@ -59,6 +63,65 @@ if (Astro.request.method === "POST") {
     ? Object.values(outcome.error.fields).flat().join(" ")
     : (outcome.error?.message ?? null);
 }
+
+/*
+ * The estimate, formatted for reading. It is shown on the panel and printed
+ * nowhere: the sheet is built by composeDocument, which never sees this field.
+ */
+const salary = result?.salary ?? null;
+/*
+ * A faixa vem numa moeda e num período — o do mercado que a pagou. As outras
+ * células saem daqui, convertendo pelo real como pivô, com a cotação que a
+ * busca trouxe. A conta fica aqui, visível, e a taxa usada aparece na tela.
+ */
+const CURRENCIES = ["BRL", "USD", "EUR"] as const;
+type Currency = (typeof CURRENCIES)[number];
+
+/*
+ * Uma cotação fora disto é erro de leitura, não câmbio: o dólar não vale dois
+ * centavos nem duzentos reais. Sem cotação plausível, só a moeda de origem é
+ * mostrada — um número errado é pior que um número ausente.
+ */
+const plausible = (rate: number) => Number.isFinite(rate) && rate > 0.5 && rate < 50;
+const rates = salary?.rates;
+const canConvert = !!rates && plausible(rates.usdBrl) && plausible(rates.eurBrl);
+const shownCurrencies: Currency[] = canConvert
+  ? [...CURRENCIES]
+  : [(salary?.market.currency ?? "BRL") as Currency];
+
+/* Um rótulo só quando os dois níveis divergem: é a divergência que interessa. */
+const levelMismatch =
+  !!salary && salary.advertisedLevel.trim().toLowerCase() !== salary.actualLevel.trim().toLowerCase();
+
+/*
+ * O outro regime. No Brasil, um bruto CLT e um bruto PJ não são o mesmo
+ * número: o primeiro carrega 13º, férias com um terço, FGTS e a parte
+ * patronal. A tabela mostra o regime em que a faixa foi cotada, e esta conta
+ * dá o equivalente — com o fator à vista, porque ele varia com o mercado.
+ */
+const regime = salary?.market.bandRegime ?? "não se aplica";
+const pjFactor = salary?.market.pjOverClt ?? 1;
+const showsRegime = regime !== "não se aplica" && pjFactor > 1.01;
+const otherRegime = regime === "CLT" ? "PJ" : "CLT";
+const toOther = (value: number) => (regime === "CLT" ? value * pjFactor : value / pjFactor);
+
+const money = (value: number, currency: string) =>
+  new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0
+  }).format(value);
+
+/** Quantos reais vale uma unidade da moeda. O real é o pivô das conversões. */
+const inBrl = (currency: Currency) =>
+  currency === "BRL" ? 1 : currency === "USD" ? (rates?.usdBrl ?? 1) : (rates?.eurBrl ?? 1);
+
+/** Um valor da moeda de origem, convertido e posto no período pedido. */
+const convert = (value: number, currency: Currency, period: "month" | "year") => {
+  const monthly = salary!.market.period === "year" ? value / 12 : value;
+  const inPeriod = period === "year" ? monthly * 12 : monthly;
+  return (inPeriod * inBrl(salary!.market.currency as Currency)) / inBrl(currency);
+};
 
 const cost = result ? result.usage.usd.toFixed(4) : null;
 /* Cached input bills at a tenth, which is why the résumé goes before the
@@ -136,6 +199,123 @@ const cachedShare =
           {result && (
             <div class="tailor__report">
               <p class="tailor__line"><b>O que o modelo fez:</b> {result.rationale}</p>
+
+              {salary && (
+                <div class="tailor__money">
+                  <p class="tailor__line">
+                    <b>A vaga</b> ·{" "}
+                    {salary.market.postingRegime === "CLT" || salary.market.postingRegime === "PJ"
+                      ? `contrato ${salary.market.postingRegime} · `
+                      : salary.market.postingRegime === "não informado"
+                        ? "contrato não informado · "
+                        : ""}
+                    {salary.market.source === "posting" ? "declarado no anúncio" : "pesquisa de mercado"}
+                    {levelMismatch ? (
+                      <>
+                        {" · anunciada como "}
+                        <b>{salary.advertisedLevel}</b>
+                        {", atribuições de "}
+                        <b>{salary.actualLevel}</b>
+                      </>
+                    ) : (
+                      ` · ${salary.actualLevel}`
+                    )}
+                  </p>
+
+                  <table class="tailor__rates">
+                    <thead>
+                      <tr>
+                        <th>{showsRegime ? regime : ""}</th>
+                        <th>por mês</th>
+                        <th>por ano</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {shownCurrencies.map((currency) => (
+                        <tr class:list={[currency === salary.market.currency && "is-native"]}>
+                          <th>{currency}</th>
+                          {(["month", "year"] as const).map((period) => (
+                            <td>
+                              {salary.market.min === salary.market.max
+                                ? money(convert(salary.market.min, currency, period), currency)
+                                : `${money(convert(salary.market.min, currency, period), currency)} – ${money(convert(salary.market.max, currency, period), currency)}`}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                      <tr class="tailor__rates-median">
+                        <th>mediana</th>
+                        {(["month", "year"] as const).map((period) => (
+                          <td>
+                            {shownCurrencies.map((currency, index) => (
+                              <>
+                                {index > 0 && <br />}
+                                {money(convert(salary.market.median, currency, period), currency)}
+                              </>
+                            ))}
+                          </td>
+                        ))}
+                      </tr>
+                      <tr class="tailor__rates-ask">
+                        <th>pedir</th>
+                        {(["month", "year"] as const).map((period) => (
+                          <td>
+                            {shownCurrencies.map((currency, index) => (
+                              <>
+                                {index > 0 && <br />}
+                                {money(convert(salary.market.ask, currency, period), currency)}
+                              </>
+                            ))}
+                          </td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  {showsRegime && (
+                    <p class="tailor__note tailor__note--money">
+                      <b>Equivalente {otherRegime}:</b> pedir{" "}
+                      <b>{money(convert(toOther(salary.market.ask), salary.market.currency as Currency, "month"), salary.market.currency)}</b>
+                      {" por mês"} · faixa{" "}
+                      {money(convert(toOther(salary.market.min), salary.market.currency as Currency, "month"), salary.market.currency)}
+                      {" – "}
+                      {money(convert(toOther(salary.market.max), salary.market.currency as Currency, "month"), salary.market.currency)}
+                      {` · fator ${pjFactor.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}`}
+                      <br />
+                      <small>{salary.market.regimeNote}</small>
+                    </p>
+                  )}
+
+                  <p class="tailor__note tailor__note--money">
+                    <b>Pedir:</b> atende <b>{salary.fit}%</b> do que a vaga pede.{" "}
+                    {salary.market.askNote}
+                  </p>
+                  <p class="tailor__note tailor__note--money">{salary.market.note}</p>
+                  {canConvert && rates && (
+                    <p class="tailor__note tailor__note--money">
+                      Conversão pelas taxas de referência do BCE de {rates.date}.
+                    </p>
+                  )}
+                  <p class="tailor__note tailor__note--money">
+                    <b>Pesquisado como:</b> {salary.summary}
+                    {salary.company && salary.company !== "não informado" && ` · empresa: ${salary.company}`}
+                  </p>
+
+                  {salary.market.sources.length > 0 && (
+                    <p class="tailor__note tailor__note--money">
+                      Fontes:{" "}
+                      {salary.market.sources.map((source, index) => (
+                        <>
+                          {index > 0 && " · "}
+                          <a href={source.url} {...away(source.url)}>{source.title}</a>
+                        </>
+                      ))}
+                    </p>
+                  )}
+
+                  <p class="tailor__note tailor__note--money">Nada disto sai no documento.</p>
+                </div>
+              )}
 
               {result.violations.length > 0 ? (
                 <>

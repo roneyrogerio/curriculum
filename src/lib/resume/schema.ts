@@ -86,7 +86,8 @@ export function planSchema(facts: CvFacts) {
       "educationIds",
       "certificationIds",
       "courseIds",
-      "rationale"
+      "rationale",
+      "posting"
     ],
     properties: {
       targetRole: {
@@ -178,6 +179,77 @@ export function planSchema(facts: CvFacts) {
             "courses: keep them only when they are on the subject of the job."
         ),
         maxItems: facts.courses.length
+      },
+      posting: {
+        type: "object",
+        additionalProperties: false,
+        required: [
+          "summary",
+          "company",
+          "advertisedLevel",
+          "actualLevel",
+          "fit",
+          "fitNote"
+        ],
+        description:
+          "How you read this posting, for the salary step that follows. No money " +
+          "here: what a job pays today is a fact about the world and is looked up " +
+          "separately. Judge the job and the fit, which the posting and the facts " +
+          "above are enough for.",
+        properties: {
+          summary: {
+            type: "string",
+            description:
+              "The job in two or three lines, written to be searched with: level, " +
+              "stack, domain, and — always — the COUNTRY whose market pays it, plus " +
+              "remote or not. State the country even when the posting does not: a " +
+              "posting written in Portuguese, with pay or benefits in reais, is the " +
+              "Brazilian market unless it says otherwise, and a search that omits " +
+              "this comes back with American figures for a Brazilian job. No company " +
+              "story, no benefits, no adjectives — just what the work is and where."
+          },
+          company: {
+            type: "string",
+            description:
+              "The employer's name, if the posting gives it. A named company can be " +
+              "searched for on its own, and what one company pays beats a national " +
+              "average. Say 'não informado' when the advertisement does not name it — " +
+              "many do not, and guessing one sends the search after the wrong band."
+          },
+          advertisedLevel: {
+            type: "string",
+            description:
+              "The level alone — 'júnior', 'pleno', 'sênior', 'staff' — as the " +
+              "posting words it. Not the job title: 'Pessoa Desenvolvedora Backend " +
+              "Sênior (Go)' is 'sênior'. Say 'não informado' when it states none."
+          },
+          actualLevel: {
+            type: "string",
+            description:
+              "The level the responsibilities amount to. Price the work, not the " +
+              "label: a posting advertised as mid-level that asks for architecture " +
+              "decisions, production on-call or mentoring is a senior job advertised " +
+              "cheaply. It holds downward too. Equal to advertisedLevel when they agree."
+          },
+          fit: {
+            type: "integer",
+            minimum: 0,
+            maximum: 100,
+            description:
+              "How well this candidate matches what the job asks, from 0 to 100. It " +
+              "doubles as the position of the ask inside the market band: 0 is the " +
+              "floor of the band, 100 the ceiling. Be honest in both directions — a " +
+              "specific, demonstrated match earns the top, a thin one does not, and " +
+              "an ask above the band ends a screening rather than opening a " +
+              "negotiation. Most real matches land between 40 and 80."
+          },
+          fitNote: {
+            type: "string",
+            description:
+              "One line: what in this candidate's profile earns that number, and what " +
+              "holds it back. Name the evidence, not adjectives."
+          }
+        }
       },
       rationale: {
         type: "string",
