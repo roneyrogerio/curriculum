@@ -1,27 +1,32 @@
-name: Deploy Curriculum
+name: CI
+
+# Publicar é consequência de um release, não de um push.
+#
+# Um push para main verifica o código e deixa o pull request de versão em dia,
+# sem publicar nada. Ao juntar esse pull request, o release-please cria a tag e
+# o release, e só então o deploy acontece — uma vez, e sempre correspondendo a
+# uma versão com changelog.
+#
+# O deploy lê a saída do release-please em vez de escutar a tag: eventos
+# disparados pelo GITHUB_TOKEN não iniciam novas execuções, então um workflow
+# que escutasse a tag simplesmente nunca rodaria.
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
-# Sem gatilho de pull_request de proposito. O unico PR deste repositorio e o de
-# release, aberto pelo bot, e o GitHub exige aprovacao manual para execucoes
-# disparadas por bot — o que pararia o fluxo a cada versao. As verificacoes
-# continuam obrigatorias em todo push para main, que e onde elas protegem.
-
-# Read-only by default; the one job that needs to write says so itself.
 permissions:
   contents: read
 
 concurrency:
-  group: curriculum-k8s-deploy
-  # Nunca cancelar no meio: uma interrupcao durante o kubectl apply deixaria o
+  group: curriculum-ci
+  # Nunca cancelar no meio: uma interrupção durante o kubectl apply deixaria o
   # cluster num estado parcial.
   cancel-in-progress: false
 
 jobs:
-  check:
+  verify:
     name: Checks, tests and ATS validation
     runs-on: ubuntu-latest
     permissions:
@@ -45,17 +50,40 @@ jobs:
       - name: Unit tests
         run: npm test
 
-      # The build writes the PDF and DOCX from src/data, so they are validated
-      # after it rather than being carried in the repository.
+      # O build escreve o PDF e o DOCX a partir de src/data, então eles são
+      # validados depois dele em vez de serem carregados no repositório.
       - name: Build
         run: npm run build
 
       - name: Validate ATS artifacts
         run: npm run validate:ats
 
+  release:
+    name: Open or land the release pull request
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      # Documentada como necessária pela action, que rotula o pull request de
+      # versão pela API de issues.
+      issues: write
+    outputs:
+      released: ${{ steps.release.outputs.release_created }}
+      tag: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - name: Run release-please
+        id: release
+        uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
   deploy:
     name: Build image and deploy to Kubernetes
-    needs: check
+    needs: [verify, release]
+    if: needs.release.outputs.released == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -67,11 +95,16 @@ jobs:
       - name: Set image metadata
         id: meta
         shell: bash
+        env:
+          TAG: ${{ needs.release.outputs.tag }}
         run: |
           OWNER_LC="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
           IMAGE_BASE="ghcr.io/${OWNER_LC}/curriculum"
-          echo "image_base=${IMAGE_BASE}" >> "$GITHUB_OUTPUT"
-          echo "image_sha=${IMAGE_BASE}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          {
+            echo "image_base=${IMAGE_BASE}"
+            echo "image_sha=${IMAGE_BASE}:${GITHUB_SHA}"
+            echo "image_tag=${IMAGE_BASE}:${TAG}"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
@@ -96,13 +129,14 @@ jobs:
           cache-to: type=gha,mode=max
           tags: |
             ${{ steps.meta.outputs.image_sha }}
+            ${{ steps.meta.outputs.image_tag }}
             ${{ steps.meta.outputs.image_base }}:latest
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@776406bce94f63e41d621b960d78ee25c8b76ede # v4
         with:
-          # Fixa: com 'latest', uma mudanca no kubectl entraria no deploy sem
-          # ninguem ter pedido.
+          # Fixa: com 'latest', uma mudança no kubectl entraria no deploy sem
+          # ninguém ter pedido.
           version: v1.31.4
 
       - name: Write OCI credentials
@@ -180,5 +214,11 @@ jobs:
       - name: Report deployed revision
         if: always()
         shell: bash
+        env:
+          TAG: ${{ needs.release.outputs.tag }}
         run: |
-          kubectl -n curriculum get ksvc curriculum -o wide >> "$GITHUB_STEP_SUMMARY" || true
+          {
+            echo "## Publicado: ${TAG}"
+            echo
+            kubectl -n curriculum get ksvc curriculum -o wide || true
+          } >> "$GITHUB_STEP_SUMMARY"

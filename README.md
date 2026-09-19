@@ -161,7 +161,31 @@ remover `<` e `>` é efeito colateral, não fronteira de segurança. O JSON embu
 `<script>` escapa `<` como `<`, porque `JSON.stringify` deixaria um `</script>` fechar a
 tag antes da hora.
 
-## Versionamento
+## Versionamento e publicação
 
-`release-please` mantém um pull request de versão aberto com o changelog, a partir de commits
-no padrão Conventional Commits. Juntar esse PR cria a tag e o release.
+Publicar é consequência de um release, não de um push.
+
+```text
+push para main
+  → verifica (check, testes, build, validate:ats)
+  → release-please deixa o PR de versão em dia
+     nenhum deploy
+
+merge do PR de versão
+  → verifica de novo
+  → release-please cria a tag e o release
+  → deploy, uma vez só
+```
+
+Assim o que está no ar sempre corresponde a uma versão com changelog, e uma versão nunca é
+publicada duas vezes — o que acontecia quando o deploy escutava todo push.
+
+O deploy lê a saída do release-please dentro do mesmo workflow em vez de escutar a tag:
+eventos disparados pelo `GITHUB_TOKEN` não iniciam novas execuções, então um workflow que
+escutasse a tag nunca rodaria.
+
+Não há gatilho de `pull_request`, também de propósito: o PR de versão é aberto por um bot, e
+o GitHub exige aprovação manual para execuções disparadas por bot — o que pararia o fluxo a
+cada versão. As verificações continuam obrigatórias em todo push para `main`.
+
+A imagem é publicada com três tags: o SHA do commit, a versão do release e `latest`.
