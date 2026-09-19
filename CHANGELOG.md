@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/roneyrogerio/curriculum/compare/v0.3.0...v0.3.1) (2026-09-19)
+
+
+### Correções
+
+* declarar o usuário do container por UID numérico ([32debc2](https://github.com/roneyrogerio/curriculum/commit/32debc2d6a72c2c63cdf7a177969aaff2352bec5))
+
 ## [0.3.0](https://github.com/roneyrogerio/curriculum/compare/v0.2.0...v0.3.0) (2026-09-19)
 
 
