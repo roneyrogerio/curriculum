@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/roneyrogerio/curriculum/compare/v0.3.3...v0.4.0) (2026-09-19)
+
+
+### Funcionalidades
+
+* estimar quanto a vaga paga e quanto pedir ([9bbbd6d](https://github.com/roneyrogerio/curriculum/commit/9bbbd6df2b5e24ac92bb58c9f59f63e7fec8f0d3))
+
+
+### Performance
+
+* cortar dois terços do custo da estimativa ([128bc1d](https://github.com/roneyrogerio/curriculum/commit/128bc1db50b82cf6cbf3c3f896045686acae75db))
+
 ## [0.3.3](https://github.com/roneyrogerio/curriculum/compare/v0.3.2...v0.3.3) (2026-09-19)
 
 
