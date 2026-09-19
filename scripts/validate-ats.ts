@@ -134,9 +134,17 @@ async function extractDocx(path: string) {
       [...paragraph.matchAll(/<w:t[^>]*>([\s\S]*?)<\/w:t>/g)]
         .map((match) => match[1])
         .join("")
-        .replace(/&amp;/g, "&")
+        /*
+         * A entidade do apóstrofo faltava aqui, e a falta não parecia um erro
+         * de extração: "children&#39;s" simplesmente não casava com o texto de
+         * src/data, e a checagem acusava artefato desatualizado num arquivo
+         * recém-gerado. Um leitor de .docx desescapa tudo; este também.
+         */
+        .replace(/&#3[49];|&apos;/g, "'")
+        .replace(/&quot;/g, '"')
         .replace(/&lt;/g, "<")
         .replace(/&gt;/g, ">")
+        .replace(/&amp;/g, "&")
     )
     .filter((line) => line.trim())
     .join("\n");
@@ -272,7 +280,14 @@ console.log("Simulação de parsing de ATS\n" + "=".repeat(60));
 for (const locale of locales) {
   console.log(`\n### ${locale.toUpperCase()} — PDF`);
   const pdf = await extractPdf(join(cvDir, `Roney-Oliveira-Software-Engineer-${locale.slice(-2).toUpperCase()}.pdf`));
-  check(`PDF ${locale}: contagem de páginas`, pdf.pageCount <= 3, `${pdf.pageCount} páginas`);
+  /*
+   * Informado, não exigido. Este é o currículo base, e ele é a fonte de fatos,
+   * não o arquivo que se envia: quem vai para a vaga é a versão adaptada, que
+   * o modelo encurta escolhendo o que aquela vaga tem motivo para ler. Um teto
+   * de páginas aqui pressionaria a tirar um fato verdadeiro do repositório
+   * justamente para caber numa folha que ninguém recebe.
+   */
+  console.log(`  --  PDF ${locale}: ${pdf.pageCount} páginas (sem limite, é o currículo base)`);
   check(
     `PDF ${locale}: nada ultrapassa a margem`,
     pdf.overflows.length === 0,
