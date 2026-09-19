@@ -6,3 +6,5 @@ dist
 .github
 .vscode
 npm-debug.log
+public/cv
+public/og.png
