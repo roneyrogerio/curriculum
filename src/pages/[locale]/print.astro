@@ -1,7 +1,8 @@
 ---
-import CvPrint from "../../components/CvPrint.astro";
+import ResumeSheet from "../../components/ResumeSheet.astro";
 import { allLocales, cvByLocale } from "../../data";
 import PrintLayout from "../../layouts/PrintLayout.astro";
+import { documentOf } from "../../lib/resume";
 import type { Locale } from "../../data/types";
 
 export function getStaticPaths() {
@@ -13,5 +14,5 @@ const cv = cvByLocale[locale];
 ---
 
 <PrintLayout cv={cv}>
-  <CvPrint cv={cv} />
+  <ResumeSheet document={documentOf(cv)} />
 </PrintLayout>

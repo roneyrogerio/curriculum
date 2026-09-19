@@ -1,0 +1,198 @@
+/*
+ * The panel on /print/tailor/.
+ *
+ * Kept apart from print.css because the public A4 sheet has no panel: in one
+ * file, every visit to the print page downloads the styling of a form it never
+ * shows. The tokens and the sheet itself come from print.css, which this page
+ * imports too.
+ */
+
+.tailor {
+  width: var(--sheet-width);
+  margin: 1.2rem auto -0.6rem;
+  font-family: var(--font-body);
+}
+
+.tailor__box {
+  border: 1px solid #3a4046;
+  border-radius: 6px;
+  background: #22262a;
+  color: #e9edf0;
+}
+
+.tailor__body {
+  padding: 0.9rem;
+}
+
+.tailor__note {
+  margin: 0.6rem 0 0;
+  color: #9aa4ac;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.tailor__input {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid #3a4046;
+  border-radius: 4px;
+  background: #171a1d;
+  color: #e9edf0;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.tailor__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.7rem 0 0;
+}
+
+.tailor__button {
+  padding: 0.45rem 1rem;
+  border: 1px solid #4a5157;
+  border-radius: 999px;
+  background: transparent;
+  color: #e9edf0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.tailor__button.is-primary {
+  border-color: var(--print-accent);
+  background: var(--print-accent);
+  color: #fff;
+}
+
+.tailor__check {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  color: #9aa4ac;
+  font-size: 0.78rem;
+}
+
+.tailor__check select {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid #3a4046;
+  border-radius: 4px;
+  background: #171a1d;
+  color: #e9edf0;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+}
+
+.tailor__report {
+  margin-top: 0.9rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid #3a4046;
+  font-size: 0.8rem;
+}
+
+.tailor__line {
+  margin: 0 0 0.4rem;
+  color: #cdd5db;
+  line-height: 1.5;
+}
+
+/* As reescritas que a verificação recusou e reverteu ao original. */
+.tailor__missing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0.2rem 0 0.6rem;
+  padding: 0;
+  list-style: none;
+}
+
+.tailor__missing li {
+  padding: 0.2rem 0.5rem;
+  border: 1px solid #4a5157;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+
+.tailor__missing span {
+  color: #f2a25c;
+}
+
+@media (max-width: 220mm) {
+  .tailor {
+    width: auto;
+    margin: 1rem;
+  }
+}
+
+/* Printing is the sheet, only. The panel is the tool that produced it. */
+@media print {
+  .tailor,
+  .print-bar {
+    display: none !important;
+  }
+}
+
+/* ----------------------------------------------------------- generating */
+
+/*
+ * Shown only while the form is busy. Hidden here rather than by `hidden` in
+ * the markup, so that with JavaScript off it never appears and never takes up
+ * space — the loading indicator is then the browser's, as it has always been.
+ */
+.tailor__pending {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.7rem 0 0;
+  color: #9aa4ac;
+  font-size: 0.78rem;
+}
+
+.tailor__box[aria-busy="true"] .tailor__pending {
+  display: flex;
+}
+
+/* What has been submitted is no longer editable, and grey says so. */
+.tailor__box[aria-busy="true"] .tailor__input {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.tailor__button[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.tailor__spinner {
+  width: 0.85rem;
+  height: 0.85rem;
+  border: 2px solid #3a4046;
+  border-top-color: var(--print-accent);
+  border-radius: 50%;
+  animation: tailor-spin 0.7s linear infinite;
+}
+
+@keyframes tailor-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Continuous motion bothers anyone who asked not to see it. The indicator
+   stays; it just stops turning. */
+@media (prefers-reduced-motion: reduce) {
+  .tailor__spinner {
+    animation: none;
+    border-top-color: var(--print-accent);
+  }
+}
+
+@media print {
+  .tailor__pending {
+    display: none !important;
+  }
+}

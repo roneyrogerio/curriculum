@@ -1,0 +1,140 @@
+---
+/*
+ * The A4 sheet, drawn from blocks.
+ *
+ * There is one of these, and it draws both documents: the résumé as `src/data`
+ * holds it, and a résumé tailored to a posting. That is the point of the block
+ * model — before it, a tailored sheet would have been a second renderer, and
+ * two renderers of the same document drift until one of them is wrong.
+ *
+ * Nothing here knows what a "position" or a "certification" is. It knows five
+ * block kinds, chosen because an ATS parses each one differently, and every
+ * heading is a plain section heading for the same reason.
+ */
+import { inlineCode } from "../lib/markup";
+import type { ResumeDocument } from "../lib/resume/document";
+
+interface Props {
+  document: ResumeDocument;
+}
+
+const { document } = Astro.props;
+
+/** The address as it prints: readable on paper, clickable on screen. */
+const bare = (url: string) => url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+
+/*
+ * Every link the résumé emits, in one place.
+ *
+ * `target="_blank"` because a visitor checking a repository or a credential is
+ * reading the page, and replacing it with a PDF loses their place.
+ * `noopener noreferrer` because a new tab otherwise gets a handle back to this
+ * one. `nofollow` because a résumé is not an endorsement: the outgoing links
+ * are evidence for a reader, and passing this page's ranking to an employer,
+ * a university or a certificate issuer is not what they are there for.
+ *
+ * A mailto or a tel is not a page, so it is left alone.
+ */
+const away = (href: string) =>
+  /^(mailto|tel):/i.test(href)
+    ? {}
+    : { target: "_blank", rel: "noopener noreferrer nofollow" };
+---
+
+<article class="sheet">
+  <header class="sheet__head">
+    <h1 class="sheet__name">{document.head.name}</h1>
+    <p class="sheet__role">{document.head.role}</p>
+    <p class="sheet__headline">{document.head.headline}</p>
+    {/*
+      Rendered as an array with explicit separators: Astro strips the
+      whitespace between adjacent elements, and without a space there is no
+      soft wrap opportunity, so the line runs off the sheet instead of wrapping.
+    */}
+    <p class="sheet__contact">
+      {document.head.contact.map((item, index) => (
+        <>
+          {index > 0 && <span class="sep"> | </span>}
+          {item.href ? <a href={item.href} {...away(item.href)}>{item.text}</a> : <span>{item.text}</span>}
+        </>
+      ))}
+    </p>
+  </header>
+
+  {document.sections.map((section) => (
+    <section class:list={["sheet__section", section.block.kind === "paragraphs" && "sheet__summary"]}>
+      <h2>{section.heading}</h2>
+
+      {section.block.kind === "paragraphs" &&
+        section.block.items.map((paragraph) => <p>{paragraph}</p>)}
+
+      {section.block.kind === "definitions" && (
+        <dl class="sheet__skills">
+          {section.block.items.map((item) => (
+            <div>
+              <dt>{item.term}</dt>
+              <dd>{item.description}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+
+      {section.block.kind === "entries" &&
+        section.block.items.map((entry) => (
+          <div class="sheet__entry">
+            <h3>
+              {entry.title}
+              {entry.org && (
+                <>
+                  {" — "}
+                  {entry.org.href ? (
+                    <a href={entry.org.href} {...away(entry.org.href)}>{entry.org.text}</a>
+                  ) : (
+                    entry.org.text
+                  )}
+                </>
+              )}
+            </h3>
+            {(entry.meta || entry.link) && (
+              <p class="sheet__entry-meta">
+                {entry.meta}
+                {entry.meta && entry.link ? " " : ""}
+                {entry.link && <a href={entry.link} {...away(entry.link)}>{bare(entry.link)}</a>}
+              </p>
+            )}
+            <ul>
+              {/*
+                `set:html` is reached for only here, and only with the output of
+                `inlineCode`, which escapes before it marks up backticks. The
+                text can come from a model, so it is treated as untrusted.
+              */}
+              {entry.bullets.map((bullet) => <li set:html={inlineCode(bullet)} />)}
+            </ul>
+            {entry.tags.length > 0 && <p class="sheet__stack">{entry.tags.join(", ")}.</p>}
+          </div>
+        ))}
+
+      {section.block.kind === "lines" && (
+        <ul class="sheet__list">
+          {section.block.items.map((item) => (
+            <li>
+              {item.label && <strong>{item.label}</strong>}
+              {item.label ? " — " : ""}
+              {item.text}
+              {item.link && (
+                <>
+                  {" · "}
+                  <a href={item.link.href} {...away(item.link.href)}>{item.link.text}</a>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {section.block.kind === "inline" && <p class="sheet__keywords">{section.block.text}</p>}
+
+      {section.note && <p class="sheet__note">{section.note}</p>}
+    </section>
+  ))}
+</article>

@@ -1,6 +1,5 @@
 ---
 import BaseHead from "../components/BaseHead.astro";
-import TailorPanel from "../components/TailorPanel.astro";
 import { siteUrl } from "../data/site";
 import type { CV } from "../data/types";
 import "../styles/print.css";
@@ -26,10 +25,10 @@ const docxPath = `/cv/Roney-Oliveira-Software-Engineer-${cv.locale.slice(-2).toU
       <button class="is-primary" type="button" id="print-action">{cv.labels.printAction}</button>
       <a href={pdfPath} id="download-pdf" download>PDF</a>
       <a href={docxPath} id="download-docx" download>DOCX</a>
+      {/* Privada: o Cloudflare Access pede identidade antes de a página abrir. */}
+      <a href="/print/tailor/">{cv.labels.tailor}</a>
       <a href={`/${cv.locale}/`}>{cv.labels.backToSite}</a>
     </div>
-
-    <TailorPanel cv={cv} />
 
     <slot />
 

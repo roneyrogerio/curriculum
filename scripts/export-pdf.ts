@@ -9,6 +9,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { allLocales, cvByLocale } from "../src/data/index.ts";
 import { buildPdf } from "../src/lib/pdf.ts";
+import { documentOf } from "../src/lib/resume/index.ts";
 
 const outputDir = join(resolve(import.meta.dirname, ".."), "public", "cv");
 
@@ -16,7 +17,7 @@ async function main() {
   await mkdir(outputDir, { recursive: true });
 
   for (const locale of allLocales) {
-    const bytes = await buildPdf(cvByLocale[locale]);
+    const bytes = await buildPdf(documentOf(cvByLocale[locale]));
     const name = `Roney-Oliveira-Software-Engineer-${locale.slice(-2).toUpperCase()}.pdf`;
     await writeFile(join(outputDir, name), bytes);
     console.log(`PDF gerado: public/cv/${name}`);

@@ -9,6 +9,7 @@ import { join, resolve } from "node:path";
 import { Packer } from "docx";
 import { allLocales, cvByLocale } from "../src/data/index.ts";
 import { buildDocument } from "../src/lib/docx.ts";
+import { documentOf } from "../src/lib/resume/index.ts";
 
 const outputDir = join(resolve(import.meta.dirname, ".."), "public", "cv");
 
@@ -16,7 +17,7 @@ async function main() {
   await mkdir(outputDir, { recursive: true });
 
   for (const locale of allLocales) {
-    const buffer = await Packer.toBuffer(buildDocument(cvByLocale[locale]));
+    const buffer = await Packer.toBuffer(buildDocument(documentOf(cvByLocale[locale])));
     const name = `Roney-Oliveira-Software-Engineer-${locale.slice(-2).toUpperCase()}.docx`;
     await writeFile(join(outputDir, name), buffer);
     console.log(`DOCX gerado: public/cv/${name}`);

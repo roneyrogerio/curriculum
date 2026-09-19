@@ -1,0 +1,283 @@
+---
+/*
+ * The private page: paste a posting, get a résumé written for it.
+ *
+ * Rendered on the server, because the OpenAI key must not reach a browser —
+ * and, having to be there anyway, it draws the sheet with the very same
+ * component the public print page uses. A client-side renderer here would have
+ * been a second implementation of the document, and two renderers of one
+ * document drift until one of them is wrong.
+ *
+ * The work is an Astro Action, so the validation, the parsing and the CSRF
+ * check are the framework's rather than hand-written. The form posts to this
+ * same URL and the page invokes the action itself with `Astro.callAction`,
+ * instead of posting to the action's own `/_actions/tailor` endpoint.
+ *
+ * That is deliberate, and it is about access control. Everything private has
+ * to sit behind one path, because the lock is a Cloudflare Access policy in
+ * front of the application, and a policy is written over a path. Posting to
+ * `/_actions/` would have put the half that spends money on a second URL, with
+ * a second rule to keep in step — and a forgotten rule there is an open door,
+ * not a broken page, so nothing would announce the mistake.
+ *
+ * So: one page, one path, one policy. `noindex` is a courtesy on top, not the
+ * lock. With JavaScript switched off it still works, because it is a form.
+ */
+import ResumeSheet from "../../components/ResumeSheet.astro";
+import { actions, isInputError } from "astro:actions";
+import { jsonForScript } from "../../lib/markup";
+import { MAX_POSTING, type tailorResume } from "../../lib/resume";
+import "../../styles/print.css";
+import "../../styles/tailor.css";
+
+export const prerender = false;
+
+let result: Awaited<ReturnType<typeof tailorResume>> | null = null;
+let error: string | null = null;
+/*
+ * Echoed back so a failed generation does not cost the posting that was typed.
+ * Read from the submitted form rather than kept in a session: there is one
+ * person using this page, and a session store would be infrastructure for a
+ * textarea.
+ */
+let submitted = "";
+
+if (Astro.request.method === "POST") {
+  const form = await Astro.request.formData();
+  submitted = String(form.get("posting") ?? "");
+
+  // The action validates the input and maps every failure to a message meant
+  // to be read, so there is nothing to catch here.
+  const outcome = await Astro.callAction(actions.tailor, form);
+  result = outcome.data ?? null;
+  /*
+   * A validation failure carries the offending fields, and its `message` is
+   * the serialised Zod report — readable by a developer, not by a person. The
+   * messages written in the schema are the ones meant to be shown.
+   */
+  error = isInputError(outcome.error)
+    ? Object.values(outcome.error.fields).flat().join(" ")
+    : (outcome.error?.message ?? null);
+}
+
+const cost = result ? result.usage.usd.toFixed(4) : null;
+/* Cached input bills at a tenth, which is why the résumé goes before the
+   posting in the prompt. Showing the share makes a regression in that ordering
+   visible instead of merely expensive. */
+const cachedShare =
+  result && result.usage.inputTokens > 0
+    ? Math.round((result.usage.cachedTokens / result.usage.inputTokens) * 100)
+    : 0;
+---
+
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Adaptar currículo a uma vaga</title>
+  </head>
+  <body class="print-body">
+    <div class="print-bar">
+      <p class="print-bar__hint">
+        Cole a vaga inteira, título incluído. O modelo escolhe e reescreve; não acrescenta.
+      </p>
+      {result && (
+        <>
+          <button class="is-primary" type="button" id="print-action">Imprimir</button>
+          {/*
+            The files in /cv are the untailored résumé, so linking to them here
+            would hand over the wrong document. These are built in the browser
+            from the sheet that is actually on screen.
+          */}
+          <button type="button" data-download="pdf">PDF</button>
+          <button type="button" data-download="docx">DOCX</button>
+        </>
+      )}
+      <a href={`/${result?.locale ?? "pt-br"}/print/`}>Currículo padrão</a>
+      <a href={`/${result?.locale ?? "pt-br"}/`}>Voltar ao site</a>
+    </div>
+
+    <aside class="tailor">
+      <form class="tailor__box" method="post">
+        <div class="tailor__body">
+          <textarea
+            name="posting"
+            class="tailor__input"
+            rows="10"
+            required
+            minlength="40"
+            maxlength={MAX_POSTING}
+            placeholder="Cole aqui a descrição da vaga, com o título…"
+            aria-label="Descrição da vaga">{submitted}</textarea>
+
+          <p class="tailor__actions">
+            <button type="submit" class="tailor__button is-primary" data-submit>
+              <span data-submit-label>Gerar</span>
+            </button>
+            <span class="tailor__check">
+              Anúncio em português gera currículo em português; em inglês, em inglês.
+            </span>
+          </p>
+
+          {/*
+            Shown only while the form is busy, by CSS. With JavaScript off none
+            of it appears, and none of it is needed: the browser's own loading
+            indicator is then the only one, as it has always been.
+          */}
+          <p class="tailor__pending" role="status" aria-live="polite">
+            <span class="tailor__spinner" aria-hidden="true"></span>
+            Gerando. Costuma levar de dez a vinte segundos.
+          </p>
+
+          {error && <p class="tailor__line" role="alert"><b>Erro:</b> {error}</p>}
+
+          {result && (
+            <div class="tailor__report">
+              <p class="tailor__line"><b>O que o modelo fez:</b> {result.rationale}</p>
+
+              {result.violations.length > 0 ? (
+                <>
+                  {/*
+                    A rewrite that added something is not shown and not sent: it
+                    was rolled back to the wording in src/data before this page
+                    rendered. This list is what was caught, so a model that
+                    starts drifting is visible rather than silently trusted.
+                  */}
+                  <p class="tailor__line"><b>Reescritas rejeitadas e revertidas ao original:</b></p>
+                  <ul class="tailor__missing">
+                    {result.violations.map((violation) => (
+                      <li><span>{violation.kind}</span> {violation.sourceId}: {violation.detail}</li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <p class="tailor__line">Nenhuma reescrita saiu do que o currículo já diz.</p>
+              )}
+
+              <p class="tailor__note">
+                {result.usage.model} · {result.usage.inputTokens} tokens de entrada
+                ({cachedShare}% em cache) · {result.usage.outputTokens} de saída · US$ {cost}
+              </p>
+            </div>
+          )}
+        </div>
+      </form>
+    </aside>
+
+    {result && <ResumeSheet document={result.document} />}
+
+    {/*
+      The document the sheet was drawn from, so the exporters can render the
+      same thing without the page having to ask the model again — a second
+      generation would be a second bill and, being a second answer, a different
+      résumé from the one on screen.
+    */}
+    {result && (
+      <script type="application/json" id="tailor-document" set:html={jsonForScript(result.document)} />
+    )}
+
+    <script>
+      /*
+       * The busy state, as progressive enhancement.
+       *
+       * The form does an ordinary POST and the answer takes ten to twenty
+       * seconds, because there is a language model in the middle. Without
+       * this, the only sign is the browser's loading bar, and the button stays
+       * clickable — a second click is a second generation and a second bill.
+       *
+       * The listener is on `submit` rather than `click`: by then the browser
+       * has queued the form data, so locking the button cannot cancel the
+       * submission in flight. And it is `aria-disabled` rather than `disabled`
+       * so the button does not vanish from the focus order of someone using a
+       * keyboard or a screen reader — what actually blocks the second
+       * submission is the guard in the listener.
+       */
+      const form = document.querySelector<HTMLFormElement>("form.tailor__box");
+      const button = document.querySelector<HTMLButtonElement>("[data-submit]");
+      const label = document.querySelector<HTMLElement>("[data-submit-label]");
+
+      form?.addEventListener("submit", (event) => {
+        if (form.dataset.busy) {
+          event.preventDefault();
+          return;
+        }
+        form.dataset.busy = "true";
+        form.setAttribute("aria-busy", "true");
+        button?.setAttribute("aria-disabled", "true");
+        if (label) label.textContent = "Gerando";
+      });
+
+      /*
+       * Coming back to this page serves it from the history cache, with the
+       * DOM exactly as it was on leaving — locked included. Without this, the
+       * button would be dead and nothing would say why.
+       */
+      addEventListener("pageshow", (event) => {
+        if (!event.persisted || !form) return;
+        delete form.dataset.busy;
+        form.removeAttribute("aria-busy");
+        button?.removeAttribute("aria-disabled");
+        if (label) label.textContent = "Gerar";
+      });
+
+      document.getElementById("print-action")?.addEventListener("click", () => window.print());
+
+      /*
+       * PDF and DOCX, built here rather than on the server.
+       *
+       * The generated document is already in the page, so writing a file from
+       * it needs no round trip and no storage: the server would otherwise have
+       * to keep the result somewhere between the POST that made it and the GET
+       * that downloads it.
+       *
+       * The writers are imported on demand, because they are the heaviest
+       * dependency in the project and nobody who is only reading the sheet
+       * should pay to download them.
+       */
+      const source = document.getElementById("tailor-document");
+      const resume = source ? JSON.parse(source.textContent!) : null;
+
+      function fileName(extension: string) {
+        const role = resume.head.role
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-zA-Z0-9]+/g, "-")
+          .replace(/^-|-$/g, "")
+          .slice(0, 40);
+        const locale = resume.locale.slice(-2).toUpperCase();
+        return `Roney-Oliveira-${role}-${locale}.${extension}`;
+      }
+
+      function save(blob: Blob, name: string) {
+        const url = URL.createObjectURL(blob);
+        const anchor = Object.assign(document.createElement("a"), { href: url, download: name });
+        anchor.click();
+        URL.revokeObjectURL(url);
+      }
+
+      for (const button of document.querySelectorAll<HTMLButtonElement>("[data-download]")) {
+        button.addEventListener("click", async () => {
+          const kind = button.dataset.download;
+          const previous = button.textContent;
+          button.textContent = "…";
+          button.setAttribute("aria-disabled", "true");
+          try {
+            if (kind === "pdf") {
+              const { buildPdf } = await import("../../lib/pdf");
+              const bytes = await buildPdf(resume);
+              save(new Blob([bytes as unknown as BlobPart], { type: "application/pdf" }), fileName("pdf"));
+            } else {
+              const { docxBlob } = await import("../../lib/docx");
+              save(await docxBlob(resume), fileName("docx"));
+            }
+          } finally {
+            button.textContent = previous;
+            button.removeAttribute("aria-disabled");
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

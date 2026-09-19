@@ -44,8 +44,13 @@ const themeOptions = [
       <nav class="toolbar__group" aria-label={labels.languageSwitch}>
         <a class="toolbar__link" href="/pt-br/" hreflang="pt-BR" aria-current={isPtBr ? "true" : undefined}>PT</a>
         <a class="toolbar__link" href="/en-us/" hreflang="en-US" aria-current={!isPtBr ? "true" : undefined}>EN</a>
-        <a class="toolbar__link toolbar__link--accent" href={`/${cv.locale}/print/#tailor`}>
-          {isPtBr ? "VAGA" : "JOB"}
+        {/*
+          The printed sheet, which is what this link has always led to: the
+          adaptation to a job posting lives inside it, not beside it, so
+          naming it after the posting promised a page that does not exist.
+        */}
+        <a class="toolbar__link toolbar__link--accent" href={`/${cv.locale}/print/`}>
+          {isPtBr ? "IMPRESSÃO" : "PRINT"}
         </a>
       </nav>
 

@@ -1,5 +1,5 @@
 /**
- * Draws the resume as a real PDF in the browser.
+ * Draws the résumé as a real PDF.
  *
  * Text is written as text, never rasterised: a screenshot-based PDF carries no
  * text layer, and an applicant tracking system would read a blank page. The
@@ -7,13 +7,27 @@
  * on screen, and the base-14 fonts keep the file small without embedding.
  */
 import { PDFDocument, type PDFFont, type PDFPage, PDFString, StandardFonts, rgb } from "pdf-lib";
-import type { CV, Skill } from "../data/types";
-import { headlineOf } from "./headline";
+import type { Block, ResumeDocument } from "./resume/document";
 
 const MM = 72 / 25.4;
 const PAGE = { width: 210 * MM, height: 297 * MM };
 const MARGIN = 19 * MM;
 const CONTENT_WIDTH = PAGE.width - MARGIN * 2;
+
+/**
+ * How much of the line the packer refuses to use.
+ *
+ * pdf-lib's metrics for the base-14 fonts do not agree to the last hundredth
+ * with what a reader computes for the same glyphs — `b` measures 6.017pt here
+ * and 6.116pt in pdf.js at 11pt — and over a full line the gap reached 3.4pt,
+ * which is enough to push the last word past the paper while every text check
+ * still passed, because clipped text stays in the text layer.
+ *
+ * So the line is packed to slightly less than the paper allows. The cost is a
+ * few characters per line; the alternative is a résumé whose right edge is cut
+ * off in print and correct on screen.
+ */
+const WRAP_SAFETY = 6;
 const LEADING = 1.36;
 
 const SIZE = {
@@ -132,7 +146,7 @@ class Sheet {
     const emphasis = options.color ? color : COLOR.ink;
     const indent = options.indent ?? 0;
     const lineHeight = size * LEADING;
-    const width = CONTENT_WIDTH - indent;
+    const width = CONTENT_WIDTH - indent - WRAP_SAFETY;
 
     interface Word {
       text: string;
@@ -232,151 +246,131 @@ class Sheet {
   }
 }
 
-const labelOf = (skill: Skill) =>
-  skill.alias?.length ? `${skill.name} (${skill.alias.join(", ")})` : skill.name;
-
 const bare = (url: string) => url.replace(/^https?:\/\//, "").replace(/\/$/, "");
 
-export async function buildPdf(cv: CV): Promise<Uint8Array> {
-  const document = await PDFDocument.create();
-  document.setTitle(cv.seoTitle);
-  document.setAuthor(cv.name);
-  document.setSubject(cv.seoDescription);
-  document.setKeywords(cv.keywords);
+/** Draws one block. The five kinds are the whole vocabulary of the sheet. */
+function drawBlock(sheet: Sheet, block: Block) {
+  switch (block.kind) {
+    case "paragraphs":
+      block.items.forEach((paragraph) => sheet.paragraph([{ text: paragraph }]));
+      return;
 
-  const regular = await document.embedFont(StandardFonts.Helvetica);
-  const bold = await document.embedFont(StandardFonts.HelveticaBold);
-  const sheet = new Sheet(document, regular, bold);
-  const { labels, contact } = cv;
+    case "definitions":
+      block.items.forEach((item) =>
+        sheet.paragraph([{ text: `${item.term}: `, bold: true }, { text: item.description }], {
+          keepWith: SIZE.body * LEADING
+        })
+      );
+      return;
 
-  sheet.paragraph([{ text: cv.name, bold: true }], { size: SIZE.name, color: COLOR.ink });
-  sheet.paragraph([{ text: cv.role, bold: true }], { size: SIZE.role, color: COLOR.accent });
-  sheet.paragraph([{ text: headlineOf(cv) }], { size: SIZE.headline });
+    case "entries":
+      block.items.forEach((entry) => {
+        sheet.space(4);
+        sheet.paragraph(
+          [
+            { text: entry.title, bold: true },
+            ...(entry.org
+              ? [
+                  { text: " — ", bold: true },
+                  { text: entry.org.text, bold: true, href: entry.org.href }
+                ]
+              : [])
+          ],
+          {
+            size: SIZE.entryTitle,
+            color: COLOR.ink,
+            // Kept with what follows so a heading never ends a page alone.
+            keepWith: SIZE.body * LEADING * 2
+          }
+        );
+        if (entry.meta || entry.link) {
+          sheet.paragraph(
+            [
+              ...(entry.meta ? [{ text: entry.meta }] : []),
+              ...(entry.link
+                ? [{ text: entry.meta ? " " : "" }, { text: bare(entry.link), href: entry.link }]
+                : [])
+            ],
+            { size: SIZE.meta, color: COLOR.faint, keepWith: SIZE.body * LEADING }
+          );
+        }
+        entry.bullets.forEach((bullet) =>
+          // The backticks are markup for the screen; on paper they are noise.
+          sheet.paragraph([{ text: bullet.replace(/`/g, "") }], { indent: 12, bullet: true })
+        );
+        if (entry.tags.length) {
+          sheet.paragraph([{ text: `${entry.tags.join(", ")}.` }], {
+            size: SIZE.meta,
+            color: COLOR.faint
+          });
+        }
+      });
+      return;
+
+    case "lines":
+      block.items.forEach((item) =>
+        sheet.paragraph(
+          [
+            ...(item.label ? [{ text: item.label, bold: true }, { text: " — " }] : []),
+            { text: item.text },
+            ...(item.link ? [{ text: " · " }, { text: item.link.text, href: item.link.href }] : [])
+          ],
+          { indent: 12, bullet: true }
+        )
+      );
+      return;
+
+    case "inline":
+      sheet.paragraph([{ text: block.text }], { size: SIZE.meta });
+  }
+}
+
+export async function buildPdf(document: ResumeDocument): Promise<Uint8Array> {
+  const pdf = await PDFDocument.create();
+  pdf.setTitle(document.meta.title);
+  pdf.setAuthor(document.head.name);
+  pdf.setSubject(document.meta.description);
+  pdf.setKeywords(document.meta.keywords);
+
+  const regular = await pdf.embedFont(StandardFonts.Helvetica);
+  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const sheet = new Sheet(pdf, regular, bold);
+
+  sheet.paragraph([{ text: document.head.name, bold: true }], {
+    size: SIZE.name,
+    color: COLOR.ink
+  });
+  sheet.paragraph([{ text: document.head.role, bold: true }], {
+    size: SIZE.role,
+    color: COLOR.accent
+  });
+  sheet.paragraph([{ text: document.head.headline }], { size: SIZE.headline });
   sheet.space(3);
+
+  /*
+   * The contact line sits in the body, never in a page header: a parser reads
+   * the body and routinely ignores the margins, which is how a résumé arrives
+   * with no way to answer it.
+   */
   const separator = { text: "  |  " };
   sheet.paragraph(
-    [
-      { text: contact.email, href: `mailto:${contact.email}` },
-      separator,
-      { text: contact.phone },
-      separator,
-      { text: contact.location },
-      separator,
-      { text: bare(contact.website), href: contact.website },
-      separator,
-      { text: bare(contact.linkedin), href: contact.linkedin },
-      separator,
-      { text: bare(contact.github), href: contact.github }
-    ],
+    document.head.contact.flatMap((item, index) => [
+      ...(index > 0 ? [separator] : []),
+      { text: item.text, href: item.href }
+    ]),
     { size: SIZE.contact }
   );
   sheet.space(3);
   sheet.rule(1.6, COLOR.accent);
 
-  sheet.heading(labels.summary);
-  cv.summary.forEach((paragraph) => sheet.paragraph([{ text: paragraph }]));
-
-  sheet.heading(labels.skills);
-  cv.skillGroups.forEach((group) =>
-    sheet.paragraph(
-      [{ text: `${group.title}: `, bold: true }, { text: `${group.skills.map(labelOf).join(", ")}.` }],
-      { keepWith: SIZE.body * LEADING }
-    )
-  );
-
-  sheet.heading(labels.experience);
-  cv.positions.forEach((position) => {
-    sheet.space(4);
-    sheet.paragraph([{ text: `${position.title} — ${position.company}`, bold: true }], {
-      size: SIZE.entryTitle,
-      color: COLOR.ink,
-      keepWith: SIZE.body * LEADING * 2
-    });
-    sheet.paragraph(
-      [
-        {
-          text: `${position.start} – ${position.end} · ${position.employment} · ${position.location}`
-        }
-      ],
-      { size: SIZE.meta, color: COLOR.faint, keepWith: SIZE.body * LEADING }
-    );
-    position.highlights.forEach((highlight) =>
-      sheet.paragraph([{ text: highlight }], { indent: 12, bullet: true })
-    );
-  });
-
-  sheet.heading(labels.projects);
-  cv.projects.forEach((project) => {
-    sheet.space(4);
-    sheet.paragraph([{ text: project.name, bold: true }], {
-      size: SIZE.entryTitle,
-      color: COLOR.ink,
-      keepWith: SIZE.body * LEADING * 2
-    });
-    const source = project.repository ?? project.url;
-    const caption = project.repository ? labels.repository : labels.liveSite;
-    sheet.paragraph(
-      source
-        ? [{ text: `${project.context} · ${caption}: ` }, { text: bare(source), href: source }]
-        : [{ text: project.context }],
-      { size: SIZE.meta, color: COLOR.faint, keepWith: SIZE.body * LEADING }
-    );
-    project.highlights.forEach((highlight) =>
-      sheet.paragraph([{ text: highlight.replace(/`/g, "") }], { indent: 12, bullet: true })
-    );
-    sheet.paragraph([{ text: `${project.stack.join(", ")}.` }], {
-      size: SIZE.meta,
-      color: COLOR.faint
-    });
-  });
-  sheet.paragraph([{ text: cv.otherProjects }], { size: SIZE.meta, color: COLOR.faint });
-
-  sheet.heading(labels.education);
-  cv.education.forEach((entry) =>
-    sheet.paragraph(
-      [
-        { text: entry.degree, bold: true },
-        {
-          text: ` — ${entry.institution}, ${entry.period}${entry.note ? ` (${entry.note})` : ""}`
-        }
-      ],
-      { indent: 12, bullet: true }
-    )
-  );
-
-  sheet.heading(labels.certifications);
-  cv.certifications.forEach((certification) =>
-    sheet.paragraph(
-      [
-        { text: certification.name, bold: true },
-        {
-          text: ` — ${certification.issuer}, ${certification.issued}${
-            certification.credentialId ? ` (ID ${certification.credentialId})` : ""
-          }`
-        }
-      ],
-      { indent: 12, bullet: true }
-    )
-  );
-  sheet.space(3);
-  sheet.paragraph(
-    [
-      { text: `${labels.courses}: `, bold: true },
-      { text: `${cv.courses.map((course) => `${course.name} (${course.workload})`).join("; ")}.` }
-    ],
-    { size: SIZE.meta, color: COLOR.faint }
-  );
-
-  sheet.heading(labels.languages);
-  cv.languages.forEach((language) =>
-    sheet.paragraph([{ text: language.name, bold: true }, { text: ` — ${language.level}` }], {
-      indent: 12,
-      bullet: true
-    })
-  );
-
-  sheet.heading(labels.keywords);
-  sheet.paragraph([{ text: `${cv.keywords.join(", ")}.` }], { size: SIZE.meta });
+  for (const section of document.sections) {
+    sheet.heading(section.heading);
+    drawBlock(sheet, section.block);
+    if (section.note) {
+      sheet.space(3);
+      sheet.paragraph([{ text: section.note }], { size: SIZE.meta, color: COLOR.faint });
+    }
+  }
 
   return await sheet.save();
 }

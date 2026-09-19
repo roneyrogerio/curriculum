@@ -17,12 +17,10 @@ import {
   TextRun,
   convertInchesToTwip
 } from "docx";
-import type { CV } from "../data/types";
-import { headlineOf } from "./headline";
+import type { Block, ResumeDocument } from "./resume/document";
 
 const FONT = "Calibri";
 const BULLET = "ats-bullet";
-const bare = (url: string) => url.replace(/^https?:\/\//, "").replace(/\/$/, "");
 /** 1.15 line spacing: Word measures it in 1/20 pt, where single spacing is 240. */
 const LINE_SPACING = 276;
 
@@ -59,157 +57,157 @@ function bullet(value: string) {
   });
 }
 
-export function buildDocument(cv: CV): Document {
-  const { labels, contact } = cv;
+/**
+ * A real hyperlink, so the address is clickable in the document and still
+ * readable as text once printed.
+ */
+function hyperlink(url: string, label?: string) {
+  return new ExternalHyperlink({
+    link: url,
+    children: [
+      new TextRun({
+        text: label ?? url.replace(/^https?:\/\//, ""),
+        style: "Hyperlink",
+        font: FONT,
+        size: 22
+      })
+    ]
+  });
+}
 
+/** Renders one block. The five kinds are the whole vocabulary of the sheet. */
+function drawBlock(block: Block): Paragraph[] {
+  switch (block.kind) {
+    case "paragraphs":
+      return block.items.map((paragraph) => body(paragraph));
+
+    case "definitions":
+      return block.items.map(
+        (item) =>
+          new Paragraph({
+            spacing: { after: 60, line: LINE_SPACING },
+            children: [text(`${item.term}: `, { bold: true }), text(item.description)]
+          })
+      );
+
+    case "entries":
+      return block.items.flatMap((entry) => [
+        // A real heading style, not bold text that looks like one: a parser
+        // segments the document by styles, and reads a styleless line as body.
+        new Paragraph({
+          heading: HeadingLevel.HEADING_2,
+          spacing: { before: 140, after: 0, line: LINE_SPACING },
+          keepNext: true,
+          children: [
+            text(entry.title, { bold: true, size: 23 }),
+            ...(entry.org
+              ? [
+                  text(" — ", { bold: true, size: 23 }),
+                  entry.org.href
+                    ? hyperlink(entry.org.href, entry.org.text)
+                    : text(entry.org.text, { bold: true, size: 23 })
+                ]
+              : [])
+          ]
+        }),
+        ...(entry.meta || entry.link
+          ? [
+              new Paragraph({
+                spacing: { after: 60, line: LINE_SPACING },
+                keepNext: true,
+                children: [
+                  ...(entry.meta ? [text(entry.meta, { color: "5D666E" })] : []),
+                  ...(entry.link
+                    ? [
+                        ...(entry.meta ? [text(" ", { color: "5D666E" })] : []),
+                        // A real hyperlink, so the address is clickable in the
+                        // document and still readable as text once printed.
+                        new ExternalHyperlink({
+                          link: entry.link,
+                          children: [
+                            new TextRun({
+                              text: entry.link.replace(/^https?:\/\//, ""),
+                              style: "Hyperlink",
+                              font: FONT,
+                              size: 22
+                            })
+                          ]
+                        })
+                      ]
+                    : [])
+                ]
+              })
+            ]
+          : []),
+        ...entry.bullets.map(bullet),
+        ...(entry.tags.length ? [body(`${entry.tags.join(", ")}.`, { spacing: 40 })] : [])
+      ]);
+
+    case "lines":
+      return block.items.map(
+        (item) =>
+          new Paragraph({
+            spacing: { after: 60, line: LINE_SPACING },
+            children: [
+              ...(item.label ? [text(item.label, { bold: true }), text(" — ")] : []),
+              text(item.text),
+              ...(item.link ? [text(" · "), hyperlink(item.link.href, item.link.text)] : [])
+            ]
+          })
+      );
+
+    case "inline":
+      return [body(block.text)];
+  }
+}
+
+export function buildDocument(document: ResumeDocument): Document {
   const children: Paragraph[] = [
     new Paragraph({
       spacing: { after: 40, line: LINE_SPACING },
-      children: [text(cv.name, { bold: true, size: 48 })]
+      children: [text(document.head.name, { bold: true, size: 48 })]
     }),
     new Paragraph({
       spacing: { after: 40, line: LINE_SPACING },
-      children: [text(cv.role, { bold: true, color: "0A7C72", size: 25 })]
+      children: [text(document.head.role, { bold: true, color: "0A7C72", size: 25 })]
     }),
-    body(headlineOf(cv), { spacing: 60 }),
-    body(
-      [
-        contact.email,
-        contact.phone,
-        contact.location,
-        bare(contact.website),
-        bare(contact.linkedin),
-        bare(contact.github)
-      ].join(" | "),
-      { spacing: 120 }
-    ),
-
-    sectionHeading(labels.summary),
-    ...cv.summary.map((paragraph) => body(paragraph)),
-
-    sectionHeading(labels.skills),
-    ...cv.skillGroups.map(
-      (group) =>
-        new Paragraph({
-          spacing: { after: 60, line: LINE_SPACING },
-          children: [
-            text(`${group.title}: `, { bold: true }),
-            text(`${group.skills.map((skill) => (skill.alias?.length ? `${skill.name} (${skill.alias.join(", ")})` : skill.name)).join(", ")}.`)
-          ]
-        })
-    ),
-
-    sectionHeading(labels.experience),
-    ...cv.positions.flatMap((position) => [
-      new Paragraph({
-        heading: HeadingLevel.HEADING_2,
-        spacing: { before: 140, after: 0, line: LINE_SPACING },
-        keepNext: true,
-        children: [text(`${position.title} — ${position.company}`, { bold: true, size: 23 })]
-      }),
-      new Paragraph({
-        spacing: { after: 60, line: LINE_SPACING },
-        keepNext: true,
-        children: [
-          text(`${position.start} – ${position.end} · ${position.employment} · ${position.location}`, {
-            color: "5D666E"
-          })
-        ]
-      }),
-      ...position.highlights.map(bullet)
-    ]),
-
-    sectionHeading(labels.projects),
-    ...cv.projects.flatMap((project) => [
-      new Paragraph({
-        heading: HeadingLevel.HEADING_2,
-        spacing: { before: 140, after: 0, line: LINE_SPACING },
-        keepNext: true,
-        children: [text(project.name, { bold: true, size: 23 })]
-      }),
-      new Paragraph({
-        spacing: { after: 60, line: LINE_SPACING },
-        keepNext: true,
-        children: (() => {
-          const link = project.repository ?? project.url;
-          const caption = project.repository ? labels.repository : labels.liveSite;
-          if (!link) return [text(project.context, { color: "5D666E" })];
-          // A real hyperlink, so the address is clickable in the document and
-          // still readable as text when it is printed.
-          return [
-            text(`${project.context} · ${caption}: `, { color: "5D666E" }),
-            new ExternalHyperlink({
-              link,
-              children: [
-                new TextRun({
-                  text: link.replace(/^https?:\/\//, ""),
-                  style: "Hyperlink",
-                  font: FONT,
-                  size: 22
-                })
-              ]
-            })
-          ];
-        })()
-      }),
-      ...project.highlights.map(bullet),
-      body(`${project.stack.join(", ")}.`, { spacing: 40 })
-    ]),
-    body(cv.otherProjects),
-
-    sectionHeading(labels.education),
-    ...cv.education.map(
-      (entry) =>
-        new Paragraph({
-          spacing: { after: 60, line: LINE_SPACING },
-          children: [
-            text(`${entry.degree}`, { bold: true }),
-            text(` — ${entry.institution}, ${entry.period}${entry.note ? ` (${entry.note})` : ""}`)
-          ]
-        })
-    ),
-
-    sectionHeading(labels.certifications),
-    ...cv.certifications.map(
-      (certification) =>
-        new Paragraph({
-          spacing: { after: 60, line: LINE_SPACING },
-          children: [
-            text(certification.name, { bold: true }),
-            text(
-              ` — ${certification.issuer}, ${certification.issued}${
-                certification.credentialId ? ` (ID ${certification.credentialId})` : ""
-              }`
-            )
-          ]
-        })
-    ),
+    body(document.head.headline, { spacing: 60 }),
+    /*
+     * The contact line is a body paragraph, never a page header: Word headers
+     * are a separate part of the file, and a parser that reads the document
+     * body simply never sees them.
+     */
+    /*
+     * Built run by run rather than joined into one string, because the e-mail
+     * and the profiles have to stay clickable in the document.
+     */
     new Paragraph({
-      spacing: { before: 80, after: 60, line: LINE_SPACING },
-      children: [
-        text(`${labels.courses}: `, { bold: true }),
-        text(`${cv.courses.map((course) => `${course.name} (${course.workload})`).join("; ")}.`)
-      ]
+      spacing: { after: 120, line: LINE_SPACING },
+      children: document.head.contact.flatMap((item, index) => [
+        ...(index > 0 ? [text(" | ")] : []),
+        item.href ? hyperlink(item.href) : text(item.text)
+      ])
     }),
 
-    sectionHeading(labels.languages),
-    ...cv.languages.map(
-      (language) =>
-        new Paragraph({
-          spacing: { after: 60, line: LINE_SPACING },
-          children: [text(language.name, { bold: true }), text(` — ${language.level}`)]
-        })
-    ),
-
-    sectionHeading(labels.keywords),
-    body(`${cv.keywords.join(", ")}.`)
+    ...document.sections.flatMap((section) => [
+      sectionHeading(section.heading),
+      ...drawBlock(section.block),
+      ...(section.note
+        ? [
+            new Paragraph({
+              spacing: { before: 80, after: 60, line: LINE_SPACING },
+              children: [text(section.note)]
+            })
+          ]
+        : [])
+    ])
   ];
 
   return new Document({
-    creator: cv.name,
-    title: cv.seoTitle,
-    description: cv.seoDescription,
-    keywords: cv.keywords.join(", "),
+    creator: document.head.name,
+    title: document.meta.title,
+    description: document.meta.description,
+    keywords: document.meta.keywords.join(", "),
     styles: {
       default: {
         document: {
@@ -260,7 +258,7 @@ export function buildDocument(cv: CV): Document {
 }
 
 
-/** For the browser: the tailored document as a file the visitor can save. */
-export async function docxBlob(cv: CV): Promise<Blob> {
-  return await Packer.toBlob(buildDocument(cv));
+/** For the browser: the document as a file the visitor can save. */
+export async function docxBlob(document: ResumeDocument): Promise<Blob> {
+  return await Packer.toBlob(buildDocument(document));
 }
