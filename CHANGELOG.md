@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.3](https://github.com/roneyrogerio/curriculum/compare/v0.3.2...v0.3.3) (2026-09-19)
+
+
+### Correções
+
+* barrar o endpoint da Action sem depender do roteamento ([c7e0eeb](https://github.com/roneyrogerio/curriculum/commit/c7e0eebd76b9b6a6fb7e8c222ea80bb4647a3d98))
+
 ## [0.3.2](https://github.com/roneyrogerio/curriculum/compare/v0.3.1...v0.3.2) (2026-09-19)
 
 
