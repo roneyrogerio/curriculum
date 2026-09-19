@@ -27,6 +27,29 @@ describe("caching", () => {
   });
 });
 
+describe("the action's own endpoint", () => {
+  const post = (pathname: string) =>
+    (onRequest as any)(
+      { url: new URL(`https://roneyrogerio.dev${pathname}`) },
+      async () => new Response("reached", { status: 200 })
+    ) as Promise<Response>;
+
+  it("does not exist, because nothing calls it", async () => {
+    /*
+     * The page invokes the action in process with Astro.callAction, so that
+     * everything private sits under one path and one Access rule. Astro still
+     * publishes /_actions/<name>, and that one is outside the rule: a scripted
+     * form post would reach the model and spend the key with no login. Astro's
+     * CSRF check does not stop a script, which sets Origin to whatever it likes.
+     */
+    expect((await post("/_actions/tailor")).status).toBe(404);
+  });
+
+  it("lets the page itself through", async () => {
+    expect((await post("/print/tailor/")).status).toBe(200);
+  });
+});
+
 describe("security headers", () => {
   const run = async (pathname: string, existing?: Record<string, string>) => {
     const response = new Response("ok", { headers: existing });
@@ -51,7 +74,7 @@ describe("security headers", () => {
   });
 
   it("does not override caching a route chose for itself", async () => {
-    const response = await run("/_actions/tailor", { "Cache-Control": "private, max-age=1" });
+    const response = await run("/print/tailor/", { "Cache-Control": "private, max-age=1" });
     expect(response.headers.get("Cache-Control")).toBe("private, max-age=1");
   });
 

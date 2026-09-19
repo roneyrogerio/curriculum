@@ -58,7 +58,33 @@ export function cacheControlFor(pathname: string): string {
   return "public, max-age=300, must-revalidate";
 }
 
+/**
+ * The action's own endpoint, which nothing here calls.
+ *
+ * Astro publishes `/_actions/<name>` for every action, whether or not anything
+ * uses it. The tailoring page does not: it invokes the action in process with
+ * `Astro.callAction`, so that everything private sits under one path and one
+ * Cloudflare Access rule.
+ *
+ * Left alone, that endpoint is a second door to the same room, and it is
+ * outside the rule: a scripted form post reaches the model and spends the key,
+ * with no session and no login. Astro's own CSRF check does not stop it —
+ * comparing Origin to the request URL only protects against a browser, which
+ * sets Origin honestly; a script sets whatever it likes.
+ *
+ * So the door is bricked up rather than guarded. 404, not 403: a refusal that
+ * says "this exists but you may not" is an invitation to keep trying.
+ */
+const ACTION_ENDPOINT = /^\/_actions\//;
+
 export const onRequest: MiddlewareHandler = async (context, next) => {
+  if (ACTION_ENDPOINT.test(context.url.pathname)) {
+    return new Response("Not found", {
+      status: 404,
+      headers: { "Content-Type": "text/plain; charset=utf-8", ...SECURITY_HEADERS }
+    });
+  }
+
   const response = await next();
 
   for (const [header, value] of Object.entries(SECURITY_HEADERS)) {
