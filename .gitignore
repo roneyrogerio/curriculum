@@ -3,6 +3,10 @@ dist/
 .astro/
 .DS_Store
 
+# A chave da OpenAI para rodar /tailor/ localmente. Em produção ela vem de um
+# Secret do cluster, nunca de um arquivo.
+.env
+
 # Gerados pelo build a partir de src/data, por isso fora do versionamento.
 public/cv/
 public/og.png

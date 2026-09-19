@@ -202,6 +202,20 @@ jobs:
             -n curriculum \
             --dry-run=client -o yaml | kubectl apply -f -
 
+      # Um segredo de runtime, não de build: a imagem é pública no GHCR, então uma
+      # chave passada como build-arg ficaria legível no histórico de camadas.
+      # Ela entra no cluster como Secret e é injetada por secretKeyRef.
+      - name: Create OpenAI secret
+        shell: bash
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          : "${OPENAI_API_KEY:?OPENAI_API_KEY secret is required}"
+          kubectl create secret generic openai-secret \
+            --from-literal=api-key="$OPENAI_API_KEY" \
+            -n curriculum \
+            --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Deploy to Kubernetes
         shell: bash
         run: |
