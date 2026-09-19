@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.3.0](https://github.com/roneyrogerio/curriculum/compare/v0.2.0...v0.3.0) (2026-09-19)
+
+
+### Funcionalidades
+
+* acrescentar o freela, os projetos do GitHub e as credenciais ([7402292](https://github.com/roneyrogerio/curriculum/commit/7402292209068a7d8aa68f3886756cf7e30f7fbd))
+* adaptar o currículo a uma vaga com um modelo de linguagem ([a9f08af](https://github.com/roneyrogerio/curriculum/commit/a9f08af4de4a1fa1f5ca835dfd6adebe7c13def9))
+
+
+### Correções
+
+* respeitar a margem do papel e ler o apóstrofo do DOCX ([94f8f76](https://github.com/roneyrogerio/curriculum/commit/94f8f76059513e32595b7300c3074b3ec71fdb4c))
+
+
+### Documentação
+
+* reescrever o README para o que o projeto é hoje ([997ce3f](https://github.com/roneyrogerio/curriculum/commit/997ce3f19a4979819edcca652ec1141d9f360ea4))
+
+
+### Build e deploy
+
+* servir o site por Node, com a política de headers em código ([588531c](https://github.com/roneyrogerio/curriculum/commit/588531ce9d65d548f950d38578bcee1e7b53ddb0))
+
+
+### Integração contínua
+
+* injetar a chave da OpenAI no cluster por Secret ([1349ff5](https://github.com/roneyrogerio/curriculum/commit/1349ff57232eccf3ba9ef71ae8ad32ee8db6c0ff))
+
 ## [0.2.0](https://github.com/roneyrogerio/curriculum/compare/v0.1.0...v0.2.0) (2026-09-19)
 
 
