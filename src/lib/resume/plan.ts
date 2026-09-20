@@ -55,20 +55,6 @@ export interface PostingAssessment {
    * pages of culture and benefits.
    */
   summary: string;
-  /**
-   * The employer, when the posting names it. A company's own band is worth
-   * more than a national average, and it is searchable by name.
-   */
-  company: string;
-  /**
-   * The country whose market pays this job, in one word.
-   *
-   * Stated as a field rather than left inside the brief because the search
-   * terms are now built in code, and a country is the difference between a
-   * Brazilian band and an American one five times its size. A word is also
-   * something two runs can agree on; a sentence is not.
-   */
-  country: string;
   /** The level the posting calls it. */
   advertisedLevel: string;
   /**

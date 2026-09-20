@@ -192,8 +192,6 @@ export function planSchema(facts: CvFacts) {
         additionalProperties: false,
         required: [
           "summary",
-          "company",
-          "country",
           "advertisedLevel",
           "actualLevel",
           "fit",
@@ -215,38 +213,6 @@ export function planSchema(facts: CvFacts) {
               "Brazilian market unless it says otherwise, and a search that omits " +
               "this comes back with American figures for a Brazilian job. No company " +
               "story, no benefits, no adjectives — just what the work is and where."
-          },
-          company: {
-            type: "string",
-            description:
-              "The employer's name, if the posting gives it. A named company can be " +
-              "searched for on its own, and what one company pays beats a national " +
-              "average. Say 'não informado' when the advertisement does not name it — " +
-              "many do not, and guessing one sends the search after the wrong band."
-          },
-          country: {
-            type: "string",
-            description:
-              "O país cujo mercado paga esta vaga, em uma palavra: 'Brasil', " +
-              "'Estados Unidos', 'Reino Unido', 'Portugal', 'Espanha', " +
-              "'Alemanha', 'Canadá', 'México'. É com esta palavra que a busca " +
-              "salarial é montada, e errá-la erra a faixa por um múltiplo. " +
-              "**Sempre um país.** 'Remoto', 'híbrido', 'Europa', 'global' e " +
-              "'não informado' não são países e não são resposta: toda vaga é " +
-              "de algum lugar, porque quem contrata está em algum lugar. " +
-              "Remoto diz onde se trabalha, não quem paga — e quem paga é o " +
-              "mercado da sede da empresa. " +
-              "Decida nesta ordem: (1) o local ou a sede que o anúncio declara; " +
-              "(2) a empresa, se você a conhece — uma empresa portuguesa " +
-              "contrata em Portugal, não no Brasil; (3) a moeda, os benefícios " +
-              "e a legislação citados — CLT, FGTS e vale-refeição são Brasil; " +
-              "401(k) e PTO são Estados Unidos; NHS e pension são Reino Unido; " +
-              "(4) só então o idioma. O idioma é o critério mais fraco, mas " +
-              "ele exclui: nenhum anúncio de vaga no Brasil é escrito em " +
-              "inglês ou espanhol, então um anúncio em inglês não é Brasil " +
-              "mesmo quando o candidato é brasileiro e a vaga é remota. Vaga " +
-              "remota é paga pelo mercado de quem contrata, não pelo de quem " +
-              "trabalha."
           },
           advertisedLevel: {
             type: "string",

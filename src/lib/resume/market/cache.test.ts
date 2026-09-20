@@ -6,7 +6,6 @@ const query = (cacheKey: string): MarketQuery => ({
   summary: "Backend sênior em Go, Brasil, remoto",
   role: "Desenvolvedor Backend Sênior",
   country: "Brasil",
-  language: "pt",
   actualLevel: "sênior",
   company: "Frete.com",
   fit: 70,

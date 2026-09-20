@@ -163,7 +163,6 @@ describe("the request the lookup sends", () => {
     summary: "Backend sênior em Go, logística, Brasil, remoto",
     role: "Desenvolvedor Backend Sênior",
     country: "Brasil",
-    language: "pt",
     actualLevel: "sênior",
     company: "Frete.com",
     fit: 70,
@@ -273,49 +272,28 @@ describe("the request the lookup sends", () => {
     expect(input).toContain("Não invente uma segunda.");
   });
 
-  it("diz em que mercado pesquisou, que é a escolha que mais move o número", async () => {
+  it("diz que restringiu a busca às fontes daquele mercado", async () => {
     const fetchImpl = ok();
-    const found = await searchMarketSalary(query({ country: "Reino Unido", language: "en" }), {
+    const found = await searchMarketSalary(query({ country: "Reino Unido" }), {
       apiKey: "k",
       fetch: fetchImpl as any
     });
 
-    expect(found.searchedIn).toEqual({
-      country: "Reino Unido",
-      currency: "GBP",
-      listed: true,
-      origin: "read",
-      requested: null
-    });
-  });
-
-  it("marca quando o idioma do anúncio derrubou o país que a leitura apontou", async () => {
-    const fetchImpl = ok();
-    // A falha medida: um anúncio em inglês voltou precificado em reais.
-    const found = await searchMarketSalary(query({ country: "Brasil", language: "en" }), {
-      apiKey: "k",
-      fetch: fetchImpl as any
-    });
-
-    // Não basta dizer que corrigiu: a tela mostra o que foi descartado, para
-    // que a correção possa ser julgada por quem lê.
-    expect(found.searchedIn).toMatchObject({
-      country: "Estados Unidos",
-      origin: "ruled-out",
-      requested: "Brasil"
-    });
+    // O mercado que a tela mostra vem da resposta do modelo; o que o código
+    // sabe, e ele não, é se a busca teve lista de fontes ou correu a web.
+    expect(found.listedSources).toBe(true);
+    const body = JSON.parse((fetchImpl.mock.calls[0] as any)[1].body);
+    expect(body.tools[0].filters.allowed_domains).toContain("itjobswatch.co.uk");
   });
 
   it("assume a web aberta para um país sem lista, e diz isso", async () => {
     const fetchImpl = ok();
-    const found = await searchMarketSalary(query({ country: "Japão", language: "en" }), {
+    const found = await searchMarketSalary(query({ country: "Japão" }), {
       apiKey: "k",
       fetch: fetchImpl as any
     });
 
-    // Continua dizendo de que país se trata: "sem lista" sozinho esconde
-    // metade da informação.
-    expect(found.searchedIn).toMatchObject({ country: "Japão", listed: false });
+    expect(found.listedSources).toBe(false);
     const body = JSON.parse((fetchImpl.mock.calls[0] as any)[1].body);
     expect(body.tools[0].filters).toBeUndefined();
   });

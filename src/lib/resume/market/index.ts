@@ -141,7 +141,7 @@ export async function searchMarketSalary(
   if (hit) return hit;
 
   const call = options.fetch ?? globalThis.fetch;
-  const market = resolveMarket(query.country, query.language);
+  const market = resolveMarket(query.country);
 
   const response = await call(ENDPOINT, {
     method: "POST",
@@ -212,29 +212,7 @@ export async function searchMarketSalary(
   const answered = parseMarketResponse(await response.json());
   const found: MarketSalary = {
     ...answered,
-    /*
-     * Sempre preenchido, inclusive quando não há lista: dizer "sem lista" sem
-     * dizer de que país é esconder metade da informação, e o país é a escolha
-     * que mais move o número.
-     */
-    searchedIn: market
-      ? {
-          country: market.country,
-          currency: market.currency,
-          listed: true,
-          origin: market.origin,
-          requested: market.requested
-        }
-      : {
-          // País de verdade sem lista de fontes: mantido como veio, com a
-          // moeda que a busca encontrou, porque trocá-lo pelo padrão do
-          // idioma precificaria uma vaga japonesa no mercado americano.
-          country: query.country,
-          currency: answered.currency,
-          listed: false,
-          origin: "read" as const,
-          requested: null
-        }
+    listedSources: market !== null
   };
 
   remember(query, found);
@@ -304,8 +282,8 @@ export function parseMarketResponse(payload: any): MarketSalary {
     ask,
     observations,
     companyBand,
-    // Preenchido por quem resolveu o mercado; aqui só existe a resposta.
-    searchedIn: null,
+    // Whoever aimed the search knows this; here there is only the answer.
+    listedSources: false,
     sources: [...sources.values()].slice(0, 6),
     usage: {
       inputTokens: usage.input_tokens ?? 0,

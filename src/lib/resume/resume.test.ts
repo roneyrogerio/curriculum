@@ -16,6 +16,7 @@ const facts = factsOf(cv);
 /** A plan that keeps everything, rewriting nothing. The baseline to perturb. */
 function fullPlan(overrides: Partial<ResumePlan> = {}): ResumePlan {
   return {
+    language: "pt-br",
     targetRole: "Pessoa Desenvolvedora Backend",
     sectionOrder: [...MOVABLE],
     headlineIds: facts.disciplines.concat(facts.technologies).map((fact) => fact.id),

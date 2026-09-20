@@ -15,7 +15,6 @@
  */
 import type { CV, Locale } from "../../data/types";
 import { cvByLocale } from "../../data";
-import { detectLocale, postingLanguage } from "../language";
 import { complete, costOf, DEFAULT_MODEL, type ClientOptions, type Usage } from "./client";
 import { composeDocument } from "./compose";
 import type { ResumeDocument } from "./document";
@@ -24,6 +23,7 @@ import { factsPrompt, INSTRUCTIONS, postingPrompt } from "./prompt";
 import { responseFormat } from "./schema";
 import { searchMarketSalary, SEARCH_CALL_USD, SEARCH_MODEL, type MarketSalary } from "./market";
 import { titleForCandidate } from "./title";
+import { triagePosting, TRIAGE_MODEL } from "./triage";
 import { verifyPlan, type Violation } from "./verify";
 
 export interface TailorRequest {
@@ -65,7 +65,16 @@ export interface TailorResult {
   salary: SalaryAdvice | null;
   /** Empty on a clean answer. Non-empty means a rewrite was rolled back. */
   violations: Violation[];
-  usage: Usage & { model: string; usd: number };
+  /**
+   * As três chamadas somadas, e não a do meio.
+   *
+   * Os tokens mostrados eram só os da adaptação, ao lado de um preço que já
+   * somava as três — de modo que dividir um pelo outro dava um número que não
+   * existe, e a chamada que mais consome entrada, a da busca, que engole
+   * páginas inteiras, não aparecia em lugar nenhum. Ou os dois são o total,
+   * ou nenhum é.
+   */
+  usage: Usage & { model: string; usd: number; searches: number };
 }
 
 /** Keeps a stray score outside 0..100 from placing the ask outside the band. */
@@ -88,9 +97,20 @@ export async function tailorResume(
     throw new InputError(`The posting is longer than ${MAX_POSTING} characters.`);
   }
 
-  // A posting in English gets the English résumé, whichever page it was pasted
-  // on: the document has to be readable by whoever wrote the advertisement.
-  const locale: Locale = request.locale ?? detectLocale(posting);
+  /*
+   * First, where the job is and what language it speaks.
+   *
+   * Both answers have to exist before the other calls: the language chooses
+   * which résumé goes into the prompt, and the country chooses which sources
+   * the salary search may enter. Asking the tailoring call would arrive too
+   * late for the first, and working them out in code was tried — by counting
+   * the posting's words, with a Brazilian job coming out Spanish.
+   *
+   * A tenth of a cent, against three to five for the whole generation.
+   */
+  const triage = await triagePosting(posting, options);
+
+  const locale: Locale = request.locale ?? triage.language;
   const cv: CV = cvByLocale[locale];
   const facts = factsOf(cv);
 
@@ -118,6 +138,12 @@ export async function tailorResume(
   const assessment = verified.plan.posting;
   let salary: SalaryAdvice | null = null;
   let searchUsd = 0;
+  let searchUsage: Usage & { searches: number } = {
+    inputTokens: 0,
+    cachedTokens: 0,
+    outputTokens: 0,
+    searches: 0
+  };
   try {
     const market = await searchMarketSalary(
       {
@@ -125,24 +151,22 @@ export async function tailorResume(
         // The same title the sheet is headed with, so the search asks about
         // the job the résumé claims rather than about a rephrasing of it.
         role: titleForCandidate(verified.plan.targetRole) || cv.role,
-        country: assessment.country,
-        // The language the advertisement is written in, which is what lets
-        // the lookup refuse a country the posting itself rules out.
-        language: postingLanguage(posting),
+        country: triage.country,
         actualLevel: assessment.actualLevel,
-        company: assessment.company,
+        company: triage.company,
         fit: clamp(assessment.fit),
         fitNote: assessment.fitNote,
         // The advertisement, which is what is the same between two runs.
-        cacheKey: `${locale}\u0000${posting}`
+        cacheKey: posting
       },
       { ...options, model: SEARCH_MODEL }
     );
     searchUsd =
       costOf(market.usage, SEARCH_MODEL) + market.usage.searches * SEARCH_CALL_USD;
+    searchUsage = market.usage;
     salary = {
       summary: assessment.summary,
-      company: assessment.company,
+      company: triage.company,
       market,
       fit: clamp(assessment.fit),
       fitNote: assessment.fitNote,
@@ -153,6 +177,14 @@ export async function tailorResume(
     console.error("market salary lookup failed", error);
   }
 
+  /* As três chamadas numa linha só, porque é uma geração para quem paga. */
+  const totalUsage = {
+    inputTokens: triage.usage.inputTokens + usage.inputTokens + searchUsage.inputTokens,
+    cachedTokens: triage.usage.cachedTokens + usage.cachedTokens + searchUsage.cachedTokens,
+    outputTokens: triage.usage.outputTokens + usage.outputTokens + searchUsage.outputTokens,
+    searches: searchUsage.searches
+  };
+
   return {
     document: composeDocument(cv, verified.plan),
     locale,
@@ -161,7 +193,12 @@ export async function tailorResume(
     violations: verified.violations,
     // Both calls, and the search fee, in one figure: two requests are still
     // one generation from the perspective of whoever pays for it.
-    usage: { ...usage, model, usd: costOf(usage, model) + searchUsd }
+    usage: {
+      ...totalUsage,
+      // O modelo que escreve o currículo; os outros dois estão no total.
+      model,
+      usd: costOf(usage, model) + costOf(triage.usage, TRIAGE_MODEL) + searchUsd
+    }
   };
 }
 

@@ -14,6 +14,7 @@ export const SCHEMA = {
     "min",
     "median",
     "max",
+    "country",
     "currency",
     "period",
     "source",
@@ -99,6 +100,15 @@ export const SCHEMA = {
         "apenas o recurso para quando faltarem observações."
     },
     max: { type: "number", description: "Teto bruto, na sua leitura. Idem." },
+    country: {
+      type: "string",
+      description:
+        "O país cujo mercado esta faixa descreve, em uma palavra: 'Brasil', " +
+        "'Estados Unidos', 'Reino Unido', 'Portugal', 'Espanha'. É o que a " +
+        "tela mostra como mercado, então diga aquele em que você de fato " +
+        "pesquisou — se as fontes que você abriu são de outro país, é o outro " +
+        "país que vale, e não o que a descrição sugeria."
+    },
     currency: {
       type: "string",
       enum: [...CURRENCIES],

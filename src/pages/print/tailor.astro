@@ -277,39 +277,12 @@ const cachedShare =
                       país erra a faixa por um múltiplo, e era a única escolha
                       do cálculo que não aparecia na tela.
                     */}
-                    <b>Mercado:</b>{" "}
-                    {salary.market.searchedIn ? (
-                      <>
-                        {salary.market.searchedIn.country}
-                        {salary.market.searchedIn.currency && ` · ${salary.market.searchedIn.currency}`}
-                        {!salary.market.searchedIn.listed && (
-                          <span class="tailor__corrected">
-                            {" "}— país sem lista de fontes própria: a busca foi na web aberta,
-                            com a precisão que isso dá
-                          </span>
-                        )}
-                        {salary.market.searchedIn.origin === "unstated" && (
-                          /*
-                            Toda vaga é de algum lugar, porque quem contrata
-                            está em algum lugar — mas o anúncio nem sempre diz
-                            qual. Aí o idioma decide, e isso é um padrão, não
-                            uma leitura: dizer só o país faria um palpite
-                            parecer evidência.
-                          */
-                          <span class="tailor__corrected">
-                            {" "}— a vaga não declara país; padrão para anúncio neste idioma
-                          </span>
-                        )}
-                        {salary.market.searchedIn.origin === "ruled-out" && (
-                          <span class="tailor__corrected">
-                            {" "}— padrão para anúncio neste idioma. A leitura da vaga dizia{" "}
-                            <b>{salary.market.searchedIn.requested}</b>, que o idioma do anúncio
-                            exclui
-                          </span>
-                        )}
-                      </>
-                    ) : (
-                      <>não informado</>
+                    <b>Mercado:</b> {salary.market.country} · {salary.market.currency}
+                    {!salary.market.listedSources && (
+                      <span class="tailor__corrected">
+                        {" "}— país sem lista de fontes própria: a busca foi na web aberta, com a
+                        precisão que isso dá
+                      </span>
                     )}
                   </p>
                   <p class="tailor__note tailor__note--money">
@@ -352,9 +325,16 @@ const cachedShare =
                 <p class="tailor__line">Nenhuma reescrita saiu do que o currículo já diz.</p>
               )}
 
+              {/*
+                Os números e o preço descrevem a mesma coisa: as três chamadas
+                de uma geração. Antes os tokens eram só os da adaptação ao lado
+                do preço das três, e a busca — que é onde a entrada explode,
+                porque as páginas abertas entram como tokens — não aparecia.
+              */}
               <p class="tailor__note">
-                {result.usage.model} · {result.usage.inputTokens} tokens de entrada
-                ({cachedShare}% em cache) · {result.usage.outputTokens} de saída · US$ {cost}
+                3 chamadas{result.usage.searches > 0 && `, ${result.usage.searches} buscas`} ·{" "}
+                {result.usage.inputTokens} tokens de entrada ({cachedShare}% em cache) ·{" "}
+                {result.usage.outputTokens} de saída · US$ {cost}
               </p>
             </div>
           )}
