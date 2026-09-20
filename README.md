@@ -1,15 +1,28 @@
 # Currículo — Roney de Oliveira
 
 Meu currículo como software: uma fonte de dados tipada que gera o site, a folha A4, o PDF e o
-DOCX — e, colada a descrição de uma vaga, **escreve uma versão do currículo para aquela vaga,
-otimizada para ATS, sem poder inventar nada.**
+DOCX em **seis idiomas** — português do Brasil e de Portugal, inglês americano e britânico,
+espanhol e francês — e, colada a descrição de uma vaga, **escreve uma versão do currículo para
+aquela vaga, otimizada para ATS, sem poder inventar nada.**
+
+Seis e não dois porque as variantes não são enfeite: o português europeu tem vocabulário
+próprio, e quem contrata no Reino Unido pede um CV e nunca um *resume*.
 
 No ar em [roneyrogerio.dev](https://roneyrogerio.dev).
 
 ## Gerar um currículo para uma vaga
 
 Cole o anúncio inteiro em `/print/tailor/` e envie. O título é a primeira linha de qualquer vaga,
-então não há campo separado para ele. O idioma do anúncio decide o idioma do documento.
+então não há campo separado para ele.
+
+**O idioma em que o anúncio está escrito decide o idioma do documento**, porque quem escreveu a
+vaga é quem vai ler o currículo — anúncio em inglês gera currículo em inglês, ainda que a vaga
+seja no Brasil e pague em reais. O país decide só a variante daquele idioma, nunca o idioma, e
+essa composição é feita em código: modelo nenhum escolhe entre `pt-br` e `pt-pt`.
+
+Ao lado, o painel — o resumo da vaga, o nível, a faixa salarial estimada e o relato do que foi
+cortado — sai no idioma em que você está lendo a tela, que frequentemente não é o mesmo. São
+duas perguntas diferentes: a folha é escrita para o recrutador, o painel é escrito para você.
 
 Volta uma folha A4 mais curta, com o vocabulário do anúncio, sem as experiências que aquela
 vaga não tem motivo para ler. Os botões de PDF e DOCX escrevem os arquivos daquela folha, no
@@ -69,8 +82,8 @@ OPENAI_API_KEY=sk-...
 | Rota | O que é |
 | --- | --- |
 | `/` | seletor de idioma, e o alvo do `x-default` |
-| `/pt-br/`, `/en-us/` | o site: duas colunas, tema claro/escuro |
-| `/pt-br/print/`, `/en-us/print/` | a folha A4 |
+| `/pt-br/`, `/pt-pt/`, `/en-us/`, `/en-gb/`, `/es/`, `/fr/` | o site: duas colunas, tema claro/escuro |
+| `/pt-br/print/` e as outras cinco | a folha A4 |
 | `/print/tailor/` | adaptação por vaga — privada, atrás do Cloudflare Access |
 
 ## Comandos
@@ -101,11 +114,13 @@ O pipeline da adaptação, e por que está nessa ordem:
 
 | Passo | O que faz |
 | --- | --- |
+| `triage` | lê do anúncio o idioma, o país, a empresa e o nível — antes de tudo, porque o idioma escolhe qual currículo entra no prompt |
 | `facts` | o currículo vira fatos endereçáveis, para o modelo só poder apontar |
 | `prompt` | a metade estável primeiro, a vaga por último, pelo cache de prompt |
 | `client` | Structured Outputs com `strict: true`: obedece ao esquema ou falha |
 | `verify` | cada reescrita é conferida contra o fato que ela reescreve |
 | `compose` | empregador, datas e links vêm de `src/data`, nunca da resposta |
+| `market` | busca na web o que a vaga paga, com o resumo que o modelo acabou de escrever — opcional, e nunca chega à folha |
 
 Nada acima do cliente conhece a OpenAI, e nada abaixo dele conhece HTTP. Trocar de provedor é
 `client.ts`; trocar de renderizador é `document.ts`.
@@ -114,7 +129,10 @@ Nada acima do cliente conhece a OpenAI, e nada abaixo dele conhece HTTP. Trocar 
 porque um ATS analisa cada um de forma diferente. O mesmo componente desenha o currículo
 padrão e o adaptado: dois renderizadores do mesmo documento divergem até um estar errado.
 
-**Modelo e custo.** `gpt-5-nano` com `reasoning: low`, menos de US$ 0,001 por adaptação — o
+**Modelos e custo.** Três chamadas, três modelos, cada um no tamanho do seu trabalho:
+`gpt-5-nano` para a triagem (ler o que está no anúncio não é julgamento) e `gpt-5.6-luna` para
+escrever o currículo e para a busca salarial. Uma geração sem estimativa de salário fica na
+casa de US$ 0,001; com as duas buscas na web, que são a metade cara, alguns centavos. O
 ranking completo, com quando trocar, está em `.env.example`.
 O currículo vai antes do anúncio no prompt de propósito: a OpenAI cacheia o prefixo mais longo
 que casa e cobra um décimo por ele. Invertido, custaria umas dez vezes mais — a página mostra
@@ -162,7 +180,8 @@ impressão.
 
 ## SEO
 
-`canonical`, `hreflang` (pt-BR, en-US e x-default), Open Graph e Twitter Card, `sitemap.xml`,
+`canonical`, `hreflang` (pt-BR, pt-PT, en-US, en-GB, es, fr e x-default), Open Graph e Twitter
+Card, `sitemap.xml`,
 `robots.txt` e JSON-LD com um grafo `Person` + `ProfilePage`.
 
 A raiz é um seletor de idioma indexável, sem redirecionamento automático: o Google pede que
