@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.8.0](https://github.com/roneyrogerio/curriculum/compare/v0.7.1...v0.8.0) (2026-09-20)
+
+
+### Funcionalidades
+
+* permitir gerar o currículo sem estimar o salário ([f4da88b](https://github.com/roneyrogerio/curriculum/commit/f4da88be65254b41bf8dbff9ac822bf44907fe16))
+
+
+### Correções
+
+* dar ao interruptor de salário a palavra de cada idioma ([b6cdd1c](https://github.com/roneyrogerio/curriculum/commit/b6cdd1c92fe8e85c90e6881ae2cefdeed80e9fec))
+
+
+### Performance
+
+* cortar quase metade do custo de uma geração nova ([bf017ce](https://github.com/roneyrogerio/curriculum/commit/bf017ce60a60f11b948c939d9e102fe6c5ca331e))
+
 ## [0.7.1](https://github.com/roneyrogerio/curriculum/compare/v0.7.0...v0.7.1) (2026-09-20)
 
 
