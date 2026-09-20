@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/roneyrogerio/curriculum/compare/v0.5.0...v0.6.0) (2026-09-20)
+
+
+### Funcionalidades
+
+* parametrizar modelo das três etapas por variável de ambiente ([50e42fb](https://github.com/roneyrogerio/curriculum/commit/50e42fb3b55be7c3061ca59aea6ea55a2a6b4f2b))
+
 ## [0.5.0](https://github.com/roneyrogerio/curriculum/compare/v0.4.2...v0.5.0) (2026-09-20)
 
 
