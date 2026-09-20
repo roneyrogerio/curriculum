@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.0](https://github.com/roneyrogerio/curriculum/compare/v0.4.2...v0.5.0) (2026-09-20)
+
+
+### Funcionalidades
+
+* ler a vaga numa chamada barata antes das duas caras ([4a843e9](https://github.com/roneyrogerio/curriculum/commit/4a843e991ed88c0b35d43250cc250158938006b0))
+* publicar o currículo em seis idiomas ([132368d](https://github.com/roneyrogerio/curriculum/commit/132368dabe419ebdd5d80aa6c10797dbe89e1273))
+
+
+### Correções
+
+* tirar do teste os campos que saíram do plano ([2de6960](https://github.com/roneyrogerio/curriculum/commit/2de69602b426cd801bf893305a064add007c3cc7))
+
 ## [0.4.2](https://github.com/roneyrogerio/curriculum/compare/v0.4.1...v0.4.2) (2026-09-20)
 
 
