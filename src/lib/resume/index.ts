@@ -38,6 +38,15 @@ export interface TailorRequest {
   /** Forced locale. Left out, the posting's own language decides. */
   locale?: Locale;
   /**
+   * Whether to look up what the job pays. On unless asked otherwise.
+   *
+   * It is the expensive half of a generation and the optional one: two web
+   * searches, billed per call, against a résumé that is already written by
+   * the time the lookup starts. Somebody adjusting a posting and regenerating
+   * to see the sheet change should not buy the same salary band each time.
+   */
+  salary?: boolean;
+  /**
    * The language of everything shown beside the résumé — the brief, the
    * levels, the market notes, the account of what was cut.
    *
@@ -104,6 +113,16 @@ const clamp = (value: number) => Math.min(100, Math.max(0, Math.round(value)));
 export const MAX_POSTING = 20_000;
 
 export class InputError extends Error {}
+
+/**
+ * Not an error: the one way out of the salary block that means "asked not to".
+ *
+ * The block already turns a failed lookup into a missing panel rather than a
+ * failed generation, and that is the behaviour wanted here too — so this
+ * leaves through the same door, and is told apart at the bottom so a
+ * deliberate skip is never logged as a fault.
+ */
+class SkipSalary extends Error {}
 
 export async function tailorResume(
   request: TailorRequest,
@@ -174,7 +193,10 @@ export async function tailorResume(
     outputTokens: 0,
     searches: 0
   };
+  const wantsSalary = request.salary ?? true;
+
   try {
+    if (!wantsSalary) throw new SkipSalary();
     const market = await searchMarketSalary(
       {
         summary: assessment.summary,
@@ -205,7 +227,8 @@ export async function tailorResume(
       actualLevel: assessment.actualLevel
     };
   } catch (error) {
-    console.error("market salary lookup failed", error);
+    /* Asked not to look: not a failure, and nothing to report. */
+    if (!(error instanceof SkipSalary)) console.error("market salary lookup failed", error);
   }
 
   /* All three calls combined in a single figure: it is one generation to whoever pays. */

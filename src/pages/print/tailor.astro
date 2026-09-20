@@ -100,10 +100,16 @@ let error: string | null = null;
  * textarea.
  */
 let submitted = "";
+/*
+ * Echoed back like the posting is, and for the same reason: a generation that
+ * was asked to skip the salary should come back with the switch still off.
+ */
+let wantsSalary = true;
 
 if (Astro.request.method === "POST") {
   const form = await Astro.request.formData();
   submitted = String(form.get("posting") ?? "");
+  wantsSalary = form.get("salary") === "on";
 
   // The action validates the input and maps every failure to a message meant
   // to be read, so there is nothing to catch here.
@@ -238,8 +244,21 @@ const cachedShare =
             >
               <span data-submit-label>{t.generate}</span>
             </button>
+            {/*
+              Ticked unless this generation was asked to leave it out, so a
+              reload after unticking does not quietly put the cost back.
+            */}
+            <label class="tailor__switch">
+              <input type="checkbox" name="salary" value="on" checked={wantsSalary} />
+              <span class="tailor__switch-track" aria-hidden="true"></span>
+              <span class="tailor__switch-text">{t.salaryToggle}</span>
+            </label>
+          </p>
+
+          <p class="tailor__actions">
             <span class="tailor__check">{t.languageNote}</span>
           </p>
+
 
           {/*
             Shown only while the form is busy, by CSS. With JavaScript off none
@@ -402,7 +421,9 @@ const cachedShare =
                 where input explodes due to ingested pages — was omitted.
               */}
               <p class="tailor__note">
-                3 {t.callsWord}
+                {/* Counted rather than written out: two calls when the salary
+                    was left out, three when it was looked up. */}
+                {salary ? 3 : 2} {t.callsWord}
                 {result.usage.searches > 0 && `, ${result.usage.searches} ${t.searchesWord}`} ·{" "}
                 {result.usage.inputTokens} {t.inputTokens} ({cachedShare}% {t.cachedShare}) ·{" "}
                 {result.usage.outputTokens} {t.outputTokens} · US$ {cost}

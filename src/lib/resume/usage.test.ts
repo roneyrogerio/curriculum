@@ -197,4 +197,28 @@ describe("what a generation costs", () => {
     expect(result.usage.usd).toBeCloseTo(expected, 10);
     expect(result.usage.model).toBe("gpt-5.6-terra");
   });
+
+  it("leaves the salary alone when asked to, and does not pay for the search", async () => {
+    const fetchImpl = stubbedFetch();
+    const result = await tailorResume(
+      { posting: vaga(), salary: false },
+      { apiKey: "k", fetch: fetchImpl as any }
+    );
+
+    // Two calls, not three: the lookup is never made.
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(result.salary).toBeNull();
+    expect(result.usage.searches).toBe(0);
+    expect(result.usage.usd).toBeCloseTo(priced(TRIAGE, RATE.nano) + priced(TAILOR, RATE.nano), 10);
+    // The résumé is the point, and it is written either way.
+    expect(result.document).toBeTruthy();
+  });
+
+  it("looks the salary up when nothing is said, because that is the useful default", async () => {
+    const fetchImpl = stubbedFetch();
+    const result = await tailorResume({ posting: vaga() }, { apiKey: "k", fetch: fetchImpl as any });
+
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
+    expect(result.salary).not.toBeNull();
+  });
 });

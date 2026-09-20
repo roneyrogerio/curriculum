@@ -59,9 +59,17 @@ export const server = {
       lang: z
         .enum(allLocales as [Locale, ...Locale[]])
         .optional()
-        .catch(undefined)
+        .catch(undefined),
+      /*
+       * The salary switch, read the way HTML sends a checkbox: present when
+       * ticked, absent when not. There is no third state to worry about —
+       * the form always has the box, so "absent" always means "unticked"
+       * rather than "not asked", and a script calling this action without
+       * the field is saying the same thing.
+       */
+      salary: z.literal("on").optional()
     }),
-    async handler({ posting, lang }) {
+    async handler({ posting, lang, salary }) {
       if (!OPENAI_API_KEY) {
         throw new ActionError({
           code: "SERVICE_UNAVAILABLE",
@@ -74,6 +82,7 @@ export const server = {
           {
             posting,
             adviceLocale: lang,
+            salary: salary === "on",
             model: OPENAI_TAILOR_MODEL,
             models: {
               triage: OPENAI_TRIAGE_MODEL,

@@ -24,6 +24,8 @@ export interface TailorCopy {
   generate: string;
   generating: string;
   languageNote: string;
+  /** The switch beside the button: whether to look the salary up at all. */
+  salaryToggle: string;
   pending: string;
   errorPrefix: string;
   rationale: string;
@@ -76,6 +78,8 @@ export const tailorByLocale: Record<Locale, TailorCopy> = {
     generate: "Gerar",
     generating: "Gerando",
     languageNote: "Anúncio em português gera currículo em português; em inglês, em inglês.",
+    salaryToggle: "Estimar el salario",
+    salaryToggle: "Estimar o salário",
     pending: "Gerando. Costuma levar de dez a vinte segundos.",
     errorPrefix: "Erro:",
     rationale: "O que o modelo fez:",
@@ -126,6 +130,7 @@ export const tailorByLocale: Record<Locale, TailorCopy> = {
     generate: "Gerar",
     generating: "A gerar",
     languageNote: "Anúncio em português gera currículo em português; em inglês, em inglês.",
+    salaryToggle: "Estimar o salário",
     pending: "A gerar. Costuma demorar de dez a vinte segundos.",
     errorPrefix: "Erro:",
     rationale: "O que o modelo fez:",
@@ -176,6 +181,7 @@ export const tailorByLocale: Record<Locale, TailorCopy> = {
     generate: "Generate",
     generating: "Generating",
     languageNote: "A posting in English yields a résumé in English; in Portuguese, in Portuguese.",
+    salaryToggle: "Estimate the salary",
     pending: "Generating. This usually takes ten to twenty seconds.",
     errorPrefix: "Error:",
     rationale: "What the model did:",
@@ -226,6 +232,7 @@ export const tailorByLocale: Record<Locale, TailorCopy> = {
     generate: "Generate",
     generating: "Generating",
     languageNote: "An advertisement in English yields a CV in English; in Portuguese, in Portuguese.",
+    salaryToggle: "Estimate the salary",
     pending: "Generating. This usually takes ten to twenty seconds.",
     errorPrefix: "Error:",
     rationale: "What the model did:",
@@ -326,6 +333,7 @@ export const tailorByLocale: Record<Locale, TailorCopy> = {
     generate: "Générer",
     generating: "Génération",
     languageNote: "Une offre en français donne un CV en français ; en anglais, en anglais.",
+    salaryToggle: "Estimer le salaire",
     pending: "Génération en cours. Cela prend d'ordinaire dix à vingt secondes.",
     errorPrefix: "Erreur :",
     rationale: "Ce que le modèle a fait :",
