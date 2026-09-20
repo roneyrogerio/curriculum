@@ -591,6 +591,7 @@ export const ptPt: CV = {
     keywords: "Competências adicionais",
     targetRole: "Cargo pretendido",
     print: "Versão para impressão",
+    printShort: "Imprimir",
     printAction: "Imprimir ou guardar em PDF",
     tailor: "Adaptar a uma vaga",
     backToSite: "Voltar ao currículo",

@@ -561,6 +561,7 @@ export const fr: CV = {
     keywords: "Compétences additionnelles",
     targetRole: "Poste visé",
     print: "Version imprimable",
+    printShort: "Imprimer",
     printAction: "Imprimer ou enregistrer en PDF",
     tailor: "Adapter à une offre",
     backToSite: "Retour au CV",

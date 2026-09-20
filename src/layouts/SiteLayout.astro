@@ -2,6 +2,7 @@
 import BaseHead from "../components/BaseHead.astro";
 import ThemeSwitch from "../components/ThemeSwitch.astro";
 import ArrowLeft from "../assets/icons/arrow-left.svg";
+import Printer from "../assets/icons/printer.svg";
 import type { CV } from "../data/types";
 import "../styles/site.css";
 
@@ -63,6 +64,21 @@ const path = `/${cv.locale}/`;
           <a class="toolbar__link" href="/" aria-label={labels.languageSwitch}>
             <ArrowLeft class="toolbar__icon" aria-hidden="true" focusable="false" />
             <span>{labels.languageName}</span>
+          </a>
+        </nav>
+
+        {/*
+          Between the two, which is where it belongs: the language pill is
+          about leaving this page, the theme is about how this one looks, and
+          printing is about the document itself. It was dropped from this bar
+          once, along with PDF and DOCX, when six languages pushed the row
+          past a phone's width — but those three were duplicates of buttons in
+          the masthead, and this bar now carries two items, not seven.
+        */}
+        <nav class="toolbar__group">
+          <a class="toolbar__link" href={`${path}print/`}>
+            <Printer class="toolbar__icon" aria-hidden="true" focusable="false" />
+            <span>{labels.printShort}</span>
           </a>
         </nav>
 

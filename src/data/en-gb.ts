@@ -591,6 +591,7 @@ export const enGb: CV = {
     keywords: "Additional skills",
     targetRole: "Target role",
     print: "Print version",
+    printShort: "Print",
     printAction: "Print or save as PDF",
     tailor: "Tailor to a job",
     backToSite: "Back to CV",

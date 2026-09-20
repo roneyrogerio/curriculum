@@ -100,6 +100,12 @@ export interface Labels {
   keywords: string;
   targetRole: string;
   print: string;
+  /**
+   * The same destination as `print`, in one word, for the toolbar pill — where
+   * "Versão para impressão" in capitals would be wider than the language and
+   * theme pills put together.
+   */
+  printShort: string;
   printAction: string;
   /** Link to the private tailoring page, on the print bar. */
   tailor: string;
