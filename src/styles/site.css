@@ -62,6 +62,7 @@
 .toolbar__theme {
   display: inline-flex;
   align-items: center;
+  gap: 0.4rem;
   min-height: 1.7rem;
   line-height: 1;
   padding: 0.32rem 0.72rem;
@@ -86,15 +87,37 @@
 /* Ícone e palavra lado a lado: a pílula do tema é do mesmo tamanho e do mesmo
    tipo que a do idioma, porque faz o mesmo tipo de coisa. */
 .toolbar__theme {
-  gap: 0.4rem;
   border: 0;
   background: transparent;
   cursor: pointer;
 }
 
-.toolbar__theme [data-theme-icon] {
-  font-size: 0.85rem;
-  line-height: 1;
+/* O botão traz os dois ícones e mostra o do tema que um clique produz. O HTML
+   sai do servidor sem `data-theme-next` — e sem ele vale a lua, que é o mesmo
+   que a palavra ao lado diz antes de o script correr. */
+.toolbar__theme [data-theme-icon="light"],
+.toolbar__theme[data-theme-next="light"] [data-theme-icon="dark"] {
+  display: none;
+}
+
+.toolbar__theme[data-theme-next="light"] [data-theme-icon="light"] {
+  display: inline;
+}
+
+/* Os ícones eram glifos de texto — ☾, ☀, ←. Centrar a caixa deles não centrava
+   o desenho: cada glifo ocupa a sua parte da métrica da fonte, e nenhum a ocupa
+   do mesmo modo, então o ícone ficava sempre um fio acima ou abaixo da palavra
+   ao lado. Um SVG não tem esse resto: a caixa é o quadrado do `viewBox`, o
+   desenho está centrado nele, e aí sim `align-items: center` alinha o que se vê.
+   Falta o resto ótico: a palavra ao lado é toda em maiúsculas, e com
+   `line-height: 1` a caixa dela ainda reserva o espaço do descendente que
+   nenhuma maiúscula usa, pelo que o que se lê fica meio pixel acima do centro
+   da caixa. O ícone sobe o mesmo meio pixel para os dois casarem. */
+.toolbar__icon {
+  flex: none;
+  width: 0.95rem;
+  height: 0.95rem;
+  transform: translateY(-0.5px);
 }
 
 .toolbar__theme[aria-checked="true"] {

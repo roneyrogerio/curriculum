@@ -19,6 +19,9 @@
  * following the system, including when the system changes later, which the
  * listener below picks up live.
  */
+import Moon from "../assets/icons/moon.svg";
+import Sun from "../assets/icons/sun.svg";
+
 interface Props {
   /** The locale's own words. `themeLight` and `themeDark` title the action. */
   labels: { themeLabel: string; themeLight: string; themeDark: string };
@@ -36,7 +39,17 @@ const { labels } = Astro.props;
     data-label-light={labels.themeLight}
     data-label-dark={labels.themeDark}
   >
-    <span aria-hidden="true" data-theme-icon>☾</span>
+    {/*
+      Importados como componentes: o Astro embute o ficheiro no HTML, sem
+      pedido extra e sem perder `currentColor`, e os atributos passados aqui
+      vão para o `<svg>` gerado.
+
+      Os dois ficam sempre no DOM e quem escolhe é o CSS, por `data-theme-next`
+      no botão. `hidden` seria o natural num elemento HTML, mas dentro de SVG
+      é um atributo qualquer, que o browser não usa para esconder nada.
+    */}
+    <Moon class="toolbar__icon" aria-hidden="true" focusable="false" data-theme-icon="dark" />
+    <Sun class="toolbar__icon" aria-hidden="true" focusable="false" data-theme-icon="light" />
     <span data-theme-text>{labels.themeDark}</span>
   </button>
 </div>
@@ -47,7 +60,6 @@ const { labels } = Astro.props;
     const button = document.getElementById("theme-toggle");
     if (!button) return;
 
-    const icon = button.querySelector("[data-theme-icon]");
     const text = button.querySelector("[data-theme-text]");
     const media = window.matchMedia("(prefers-color-scheme: dark)");
 
@@ -71,7 +83,7 @@ const { labels } = Astro.props;
        * line, and this one is an action.
        */
       const goingDark = effective() !== "dark";
-      if (icon) icon.textContent = goingDark ? "☾" : "☀";
+      button.dataset.themeNext = goingDark ? "dark" : "light";
       if (text) text.textContent = goingDark ? button.dataset.labelDark : button.dataset.labelLight;
     }
 

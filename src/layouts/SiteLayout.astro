@@ -1,6 +1,7 @@
 ---
 import BaseHead from "../components/BaseHead.astro";
 import ThemeSwitch from "../components/ThemeSwitch.astro";
+import ArrowLeft from "../assets/icons/arrow-left.svg";
 import type { CV } from "../data/types";
 import "../styles/site.css";
 
@@ -60,7 +61,8 @@ const path = `/${cv.locale}/`;
         */}
         <nav class="toolbar__group">
           <a class="toolbar__link" href="/" aria-label={labels.languageSwitch}>
-            <span aria-hidden="true">←</span> {labels.languageName}
+            <ArrowLeft class="toolbar__icon" aria-hidden="true" focusable="false" />
+            <span>{labels.languageName}</span>
           </a>
         </nav>
 
