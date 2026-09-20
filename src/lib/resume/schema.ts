@@ -228,8 +228,25 @@ export function planSchema(facts: CvFacts) {
             type: "string",
             description:
               "O país cujo mercado paga esta vaga, em uma palavra: 'Brasil', " +
-              "'Estados Unidos', 'Portugal'. Um anúncio em português que não " +
-              "diz é Brasil. É com esta palavra que a busca salarial é montada."
+              "'Estados Unidos', 'Reino Unido', 'Portugal', 'Espanha', " +
+              "'Alemanha', 'Canadá', 'México'. É com esta palavra que a busca " +
+              "salarial é montada, e errá-la erra a faixa por um múltiplo. " +
+              "**Sempre um país.** 'Remoto', 'híbrido', 'Europa', 'global' e " +
+              "'não informado' não são países e não são resposta: toda vaga é " +
+              "de algum lugar, porque quem contrata está em algum lugar. " +
+              "Remoto diz onde se trabalha, não quem paga — e quem paga é o " +
+              "mercado da sede da empresa. " +
+              "Decida nesta ordem: (1) o local ou a sede que o anúncio declara; " +
+              "(2) a empresa, se você a conhece — uma empresa portuguesa " +
+              "contrata em Portugal, não no Brasil; (3) a moeda, os benefícios " +
+              "e a legislação citados — CLT, FGTS e vale-refeição são Brasil; " +
+              "401(k) e PTO são Estados Unidos; NHS e pension são Reino Unido; " +
+              "(4) só então o idioma. O idioma é o critério mais fraco, mas " +
+              "ele exclui: nenhum anúncio de vaga no Brasil é escrito em " +
+              "inglês ou espanhol, então um anúncio em inglês não é Brasil " +
+              "mesmo quando o candidato é brasileiro e a vaga é remota. Vaga " +
+              "remota é paga pelo mercado de quem contrata, não pelo de quem " +
+              "trabalha."
           },
           advertisedLevel: {
             type: "string",

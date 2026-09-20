@@ -7,6 +7,8 @@
  * renders them, the tailoring pipeline passes them through — and none of that
  * should have to import a module that knows an HTTP endpoint.
  */
+import type { MarketOrigin, PostingLanguage } from "./sources";
+
 /**
  * The currencies a band may be quoted in: the one the job's own country pays
  * in, never a conversion of it.
@@ -147,6 +149,34 @@ export interface MarketSalary {
    * not to anchor on a national average.
    */
   companyBand: { min: number; median: number; max: number; used: number } | null;
+  /**
+   * Em que mercado esta faixa foi procurada, e se essa não foi a resposta que
+   * o plano deu.
+   *
+   * É a decisão que mais move o número — errar o país erra a faixa por um
+   * múltiplo — e era a única que não aparecia na tela. `corrected` marca o
+   * caso em que o idioma do anúncio derrubou o país que o modelo leu: quem
+   * confere merece saber que houve uma correção, e não só qual foi o
+   * resultado dela.
+   */
+  searchedIn: {
+    country: string;
+    currency: string;
+    /**
+     * Se este país tem lista de fontes própria. Sem ela a busca foi na web
+     * aberta, que é como a coisa toda funcionava antes — e o número vale
+     * menos, então a tela diz isso em vez de omitir.
+     */
+    listed: boolean;
+    /**
+     * De onde veio este mercado: lido do anúncio, ou o padrão do idioma —
+     * porque o anúncio não declarou país, ou porque declarou um que o idioma
+     * exclui. São três coisas diferentes e a tela mostra as três diferente.
+     */
+    origin: MarketOrigin;
+    /** O país descartado, quando houve um. */
+    requested: string | null;
+  } | null;
   /** Every page consulted, so the number can be checked. */
   sources: { title: string; url: string }[];
   usage: { inputTokens: number; cachedTokens: number; outputTokens: number; searches: number };
@@ -166,7 +196,14 @@ export interface MarketQuery {
    * Retrieval was the variance, not the arithmetic.
    */
   role: string;
+  /**
+   * The country the plan read off the posting, and the language the posting
+   * is written in. The second is a check on the first: a Brazilian
+   * advertisement is written in Portuguese, so an English posting priced as a
+   * Brazilian job is an answer its own evidence rules out. See `sources.ts`.
+   */
   country: string;
+  language: PostingLanguage;
   actualLevel: string;
   /** The employer, when the posting named one. */
   company: string;

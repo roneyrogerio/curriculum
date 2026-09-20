@@ -22,7 +22,7 @@ import { bandOf, companyBandOf } from "./band";
 import { cached, remember } from "./cache";
 import { INSTRUCTIONS } from "./prompt";
 import { SCHEMA } from "./schema";
-import { searchToolFor, sitesFor } from "./sources";
+import { resolveMarket, searchToolFor, type ResolvedMarket } from "./sources";
 import type { MarketObservation, MarketQuery, MarketSalary } from "./types";
 
 export type { MarketObservation, MarketQuery, MarketSalary } from "./types";
@@ -92,18 +92,20 @@ function matchLabel(fit: number): string {
   return "atende com folga";
 }
 
-function inputFor(query: MarketQuery): string {
+function inputFor(query: MarketQuery, market: ResolvedMarket | null): string {
   const year = new Date().getFullYear();
-  const sites = sitesFor(query.country);
   const withCompany = named(query.company);
+  // The market the code settled on, which may not be the one the plan named:
+  // a posting in English is not a Brazilian job however the brief reads.
+  const country = market?.country ?? query.country;
 
-  const searches = [`salário ${query.role} ${query.actualLevel} ${query.country} ${year}`];
+  const searches = [`salário ${query.role} ${query.actualLevel} ${country} ${year}`];
   if (withCompany) searches.push(`${query.company} salário ${query.role}`);
 
   return [
     `Cargo: ${query.role}`,
     `Nível das atribuições: ${query.actualLevel}`,
-    `País: ${query.country}`,
+    `País: ${country}${market ? ` (mercado em ${market.currency})` : ""}`,
     `Empresa: ${query.company}`,
     "",
     "Buscas a fazer, nestes termos exatos e em nenhum outro:",
@@ -111,14 +113,14 @@ function inputFor(query: MarketQuery): string {
     withCompany
       ? "A segunda é obrigatória: é o que esta empresa paga, e responde por 40% da faixa final."
       : "O anúncio não nomeia empresa, então há uma busca só. Não invente uma segunda.",
-    ...(sites
+    ...(market
       ? [
           "",
           // Named apart because they answer different questions, and because a
           // run that opened three pages of one site produced three votes from
           // one methodology.
-          `A faixa sai dos guias com metodologia: ${sites.guides.join(", ")}.`,
-          `O que a empresa paga sai dos sites de vaga e avaliação: ${sites.employers.join(", ")}.`,
+          `A faixa sai dos guias com metodologia: ${market.guides.join(", ")}.`,
+          `O que a empresa paga sai dos sites de vaga e avaliação: ${market.employers.join(", ")}.`,
           "Abra pelo menos um guia. Só conta a primeira página de cada site: abrir " +
             "três páginas do mesmo lugar não são três fontes."
         ]
@@ -139,6 +141,7 @@ export async function searchMarketSalary(
   if (hit) return hit;
 
   const call = options.fetch ?? globalThis.fetch;
+  const market = resolveMarket(query.country, query.language);
 
   const response = await call(ENDPOINT, {
     method: "POST",
@@ -149,7 +152,7 @@ export async function searchMarketSalary(
     body: JSON.stringify({
       model: options.model ?? SEARCH_MODEL,
       instructions: INSTRUCTIONS,
-      input: inputFor(query),
+      input: inputFor(query, market),
       /*
        * Billing decides the shape of this call. A search is $0.01 per call, and
        * the pages it retrieves are billed as input tokens at the model's rate —
@@ -168,7 +171,7 @@ export async function searchMarketSalary(
        * exactly the searches to run, and the variance by deciding which pages
        * those searches can reach. See `sources.ts`.
        */
-      tools: [searchToolFor(query.country)],
+      tools: [searchToolFor(market)],
       /*
        * Without this, the pages a search actually consulted are not in the
        * response at all: only the ones the model chose to cite come back, as
@@ -206,7 +209,33 @@ export async function searchMarketSalary(
     throw new OpenAiError(message, response.status);
   }
 
-  const found = parseMarketResponse(await response.json());
+  const answered = parseMarketResponse(await response.json());
+  const found: MarketSalary = {
+    ...answered,
+    /*
+     * Sempre preenchido, inclusive quando não há lista: dizer "sem lista" sem
+     * dizer de que país é esconder metade da informação, e o país é a escolha
+     * que mais move o número.
+     */
+    searchedIn: market
+      ? {
+          country: market.country,
+          currency: market.currency,
+          listed: true,
+          origin: market.origin,
+          requested: market.requested
+        }
+      : {
+          // País de verdade sem lista de fontes: mantido como veio, com a
+          // moeda que a busca encontrou, porque trocá-lo pelo padrão do
+          // idioma precificaria uma vaga japonesa no mercado americano.
+          country: query.country,
+          currency: answered.currency,
+          listed: false,
+          origin: "read" as const,
+          requested: null
+        }
+  };
 
   remember(query, found);
 
@@ -275,6 +304,8 @@ export function parseMarketResponse(payload: any): MarketSalary {
     ask,
     observations,
     companyBand,
+    // Preenchido por quem resolveu o mercado; aqui só existe a resposta.
+    searchedIn: null,
     sources: [...sources.values()].slice(0, 6),
     usage: {
       inputTokens: usage.input_tokens ?? 0,

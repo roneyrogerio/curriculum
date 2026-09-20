@@ -304,3 +304,9 @@
 .tailor__rates-median td {
   color: #e9edf0;
 }
+
+/* Uma correção que o código fez sozinho: quem confere merece ver que houve
+   uma, e não só o resultado dela. */
+.tailor__corrected {
+  color: #f2d55c;
+}

@@ -163,6 +163,7 @@ describe("the request the lookup sends", () => {
     summary: "Backend sênior em Go, logística, Brasil, remoto",
     role: "Desenvolvedor Backend Sênior",
     country: "Brasil",
+    language: "pt",
     actualLevel: "sênior",
     company: "Frete.com",
     fit: 70,
@@ -242,7 +243,7 @@ describe("the request the lookup sends", () => {
     const { input } = JSON.parse((fetchImpl.mock.calls[0] as any)[1].body);
     // Crowdsourced figures supplement a structured guide rather than replace
     // it, so the band and the employer are asked of different halves of the list.
-    expect(input).toContain("roberthalf.com.br");
+    expect(input).toContain("michaelpage.com.br");
     expect(input).toContain("glassdoor.com.br");
     expect(input).toContain("Abra pelo menos um guia");
   });
@@ -270,6 +271,53 @@ describe("the request the lookup sends", () => {
     const { input } = JSON.parse((fetchImpl.mock.calls[0] as any)[1].body);
     expect(input).not.toContain("2. ");
     expect(input).toContain("Não invente uma segunda.");
+  });
+
+  it("diz em que mercado pesquisou, que é a escolha que mais move o número", async () => {
+    const fetchImpl = ok();
+    const found = await searchMarketSalary(query({ country: "Reino Unido", language: "en" }), {
+      apiKey: "k",
+      fetch: fetchImpl as any
+    });
+
+    expect(found.searchedIn).toEqual({
+      country: "Reino Unido",
+      currency: "GBP",
+      listed: true,
+      origin: "read",
+      requested: null
+    });
+  });
+
+  it("marca quando o idioma do anúncio derrubou o país que a leitura apontou", async () => {
+    const fetchImpl = ok();
+    // A falha medida: um anúncio em inglês voltou precificado em reais.
+    const found = await searchMarketSalary(query({ country: "Brasil", language: "en" }), {
+      apiKey: "k",
+      fetch: fetchImpl as any
+    });
+
+    // Não basta dizer que corrigiu: a tela mostra o que foi descartado, para
+    // que a correção possa ser julgada por quem lê.
+    expect(found.searchedIn).toMatchObject({
+      country: "Estados Unidos",
+      origin: "ruled-out",
+      requested: "Brasil"
+    });
+  });
+
+  it("assume a web aberta para um país sem lista, e diz isso", async () => {
+    const fetchImpl = ok();
+    const found = await searchMarketSalary(query({ country: "Japão", language: "en" }), {
+      apiKey: "k",
+      fetch: fetchImpl as any
+    });
+
+    // Continua dizendo de que país se trata: "sem lista" sozinho esconde
+    // metade da informação.
+    expect(found.searchedIn).toMatchObject({ country: "Japão", listed: false });
+    const body = JSON.parse((fetchImpl.mock.calls[0] as any)[1].body);
+    expect(body.tools[0].filters).toBeUndefined();
   });
 
   it("pays for the same posting once", async () => {

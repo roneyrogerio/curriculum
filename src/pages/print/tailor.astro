@@ -257,10 +257,61 @@ const cachedShare =
                   )}
 
                   <p class="tailor__note tailor__note--money">
-                    <b>Pedir:</b> atende <b>{salary.fit}%</b> do que a vaga pede.{" "}
+                    {/*
+                      O percentual só aparece quando é uma leitura, e não um
+                      0 ou um 100 — que é como o modelo mais barato do pipeline
+                      falha, e falhou duas vezes na mesma vaga. Mostrar "atende
+                      0%" ao lado de um pedido na mediana é contar duas coisas
+                      que não batem; o rótulo é o que foi de fato usado.
+                    */}
+                    <b>Pedir:</b>{" "}
+                    {salary.fit > 0 && salary.fit < 100
+                      ? <>atende <b>{salary.fit}%</b> do que a vaga pede.</>
+                      : <>o encaixe no perfil não foi avaliado com confiança.</>}{" "}
                     {salary.market.askNote}
                   </p>
                   <p class="tailor__note tailor__note--money">{salary.market.note}</p>
+                  <p class="tailor__note tailor__note--money">
+                    {/*
+                      O mercado é a decisão que mais move o número: errar o
+                      país erra a faixa por um múltiplo, e era a única escolha
+                      do cálculo que não aparecia na tela.
+                    */}
+                    <b>Mercado:</b>{" "}
+                    {salary.market.searchedIn ? (
+                      <>
+                        {salary.market.searchedIn.country}
+                        {salary.market.searchedIn.currency && ` · ${salary.market.searchedIn.currency}`}
+                        {!salary.market.searchedIn.listed && (
+                          <span class="tailor__corrected">
+                            {" "}— país sem lista de fontes própria: a busca foi na web aberta,
+                            com a precisão que isso dá
+                          </span>
+                        )}
+                        {salary.market.searchedIn.origin === "unstated" && (
+                          /*
+                            Toda vaga é de algum lugar, porque quem contrata
+                            está em algum lugar — mas o anúncio nem sempre diz
+                            qual. Aí o idioma decide, e isso é um padrão, não
+                            uma leitura: dizer só o país faria um palpite
+                            parecer evidência.
+                          */
+                          <span class="tailor__corrected">
+                            {" "}— a vaga não declara país; padrão para anúncio neste idioma
+                          </span>
+                        )}
+                        {salary.market.searchedIn.origin === "ruled-out" && (
+                          <span class="tailor__corrected">
+                            {" "}— padrão para anúncio neste idioma. A leitura da vaga dizia{" "}
+                            <b>{salary.market.searchedIn.requested}</b>, que o idioma do anúncio
+                            exclui
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <>não informado</>
+                    )}
+                  </p>
                   <p class="tailor__note tailor__note--money">
                     <b>Pesquisado como:</b> {salary.summary}
                     {salary.company && salary.company !== "não informado" && ` · empresa: ${salary.company}`}

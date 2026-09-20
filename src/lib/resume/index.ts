@@ -15,7 +15,7 @@
  */
 import type { CV, Locale } from "../../data/types";
 import { cvByLocale } from "../../data";
-import { detectLocale } from "../language";
+import { detectLocale, postingLanguage } from "../language";
 import { complete, costOf, DEFAULT_MODEL, type ClientOptions, type Usage } from "./client";
 import { composeDocument } from "./compose";
 import type { ResumeDocument } from "./document";
@@ -126,6 +126,9 @@ export async function tailorResume(
         // the job the résumé claims rather than about a rephrasing of it.
         role: titleForCandidate(verified.plan.targetRole) || cv.role,
         country: assessment.country,
+        // The language the advertisement is written in, which is what lets
+        // the lookup refuse a country the posting itself rules out.
+        language: postingLanguage(posting),
         actualLevel: assessment.actualLevel,
         company: assessment.company,
         fit: clamp(assessment.fit),
