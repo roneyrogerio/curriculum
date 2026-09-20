@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.7.0](https://github.com/roneyrogerio/curriculum/compare/v0.6.1...v0.7.0) (2026-09-20)
+
+
+### Funcionalidades
+
+* devolver o botão de imprimir à barra do topo ([03498a5](https://github.com/roneyrogerio/curriculum/commit/03498a55d5c99ec5b8b99ec4e8be4fd7644dbcfd))
+* mostrar o painel de adaptação no idioma de quem o abre ([671d7e7](https://github.com/roneyrogerio/curriculum/commit/671d7e7568ff814a1bb6ede652b73906c8e19f27))
+
+
+### Correções
+
+* oferecer na página 404 todos os idiomas, e não dois ([7fcf890](https://github.com/roneyrogerio/curriculum/commit/7fcf890f2e08cfb965b9d4b54ad6172ded5d4094))
+
 ## [0.6.1](https://github.com/roneyrogerio/curriculum/compare/v0.6.0...v0.6.1) (2026-09-20)
 
 
