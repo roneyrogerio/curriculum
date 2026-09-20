@@ -5,6 +5,29 @@
  * gets read and argued with far more often than the code around it, and prose
  * buried between a JSON schema and a fetch does not get read.
  */
+/**
+ * The prose of the answer is read on the panel, so it is written in the
+ * language the candidate is browsing in — while these instructions stay in
+ * Portuguese, which is the language they were argued out in.
+ *
+ * Only the free text moves. Every enumerated field keeps the exact values the
+ * schema lists: `postingRegime` and `bandRegime` are read by code, and a
+ * translated "não se aplica" is a silent mismatch rather than an error.
+ */
+export const instructionsFor = (language: string) =>
+  `${INSTRUCTIONS}
+
+## O idioma da resposta
+
+Quem lê esta resposta está a ver o site em ${language}. Escreva em ${language}
+todo o texto livre: "country", "note", "askNote", "regimeNote" e o "role", o
+"level" e o "asOf" de cada observação.
+
+Os campos com lista fechada de valores não mudam: "currency", "period",
+"source", "scope", "postingRegime", "bandRegime" e o "regime" das observações
+continuam exatamente como o esquema os enumera, em português quando é assim
+que estão lá.`;
+
 export const INSTRUCTIONS = `Objetivo: dizer quanto o cargo desta vaga paga hoje, no mercado
 dela, e quanto esta pessoa deve pedir.
 

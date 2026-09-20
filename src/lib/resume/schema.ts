@@ -201,7 +201,8 @@ export function planSchema(facts: CvFacts) {
           "How you read this posting, for the salary step that follows. No money " +
           "here: what a job pays today is a fact about the world and is looked up " +
           "separately. Judge the job and the fit, which the posting and the facts " +
-          "above are enough for.",
+          "above are enough for. None of this is printed, so every line of prose " +
+          "in here is written in the panel language given in the input.",
         properties: {
           summary: {
             type: "string",
@@ -219,7 +220,8 @@ export function planSchema(facts: CvFacts) {
             description:
               "The level alone — 'júnior', 'pleno', 'sênior', 'staff' — as the " +
               "posting words it. Not the job title: 'Pessoa Desenvolvedora Backend " +
-              "Sênior (Go)' is 'sênior'. Say 'não informado' when it states none."
+              "Sênior (Go)' is 'sênior'. Say so, in the panel language, when the " +
+              "posting states no level at all."
           },
           actualLevel: {
             type: "string",
@@ -252,8 +254,10 @@ export function planSchema(facts: CvFacts) {
       rationale: {
         type: "string",
         description:
-          "One or two sentences, in the language of the posting, on what was led " +
-            "with and what was cut. Shown to the candidate, never printed on the sheet."
+          "One or two sentences on what was led with and what was cut. Shown to " +
+            "the candidate on screen and never printed on the sheet, so it is " +
+            "written in the panel language given in the input — which is often " +
+            "not the language of the posting."
       }
     }
   };

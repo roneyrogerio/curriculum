@@ -19,7 +19,7 @@ import { complete, costOf, DEFAULT_MODEL, type ClientOptions, type Usage } from 
 import { composeDocument } from "./compose";
 import type { ResumeDocument } from "./document";
 import { factsOf } from "./facts";
-import { factsPrompt, INSTRUCTIONS, postingPrompt } from "./prompt";
+import { factsPrompt, INSTRUCTIONS, panelPrompt, postingPrompt } from "./prompt";
 import { responseFormat } from "./schema";
 import { searchMarketSalary, SEARCH_CALL_USD, SEARCH_MODEL, type MarketSalary } from "./market";
 import { titleForCandidate } from "./title";
@@ -37,6 +37,17 @@ export interface TailorRequest {
   posting: string;
   /** Forced locale. Left out, the posting's own language decides. */
   locale?: Locale;
+  /**
+   * The language of everything shown beside the résumé — the brief, the
+   * levels, the market notes, the account of what was cut.
+   *
+   * It is the page the candidate is reading, and it is a separate question
+   * from `locale`: the sheet is written for whoever wrote the advertisement,
+   * and this is written for whoever is looking at the screen. Left out, the
+   * résumé's own language is used, which is what happened before there was
+   * anywhere else to take it from.
+   */
+  adviceLocale?: Locale;
   /** Model for tailoring the résumé. Backward-compatible alias for models.tailor. */
   model?: string;
   /** Stage-specific model overrides. */
@@ -127,10 +138,16 @@ export async function tailorResume(
   const cv: CV = cvByLocale[locale];
   const facts = factsOf(cv);
 
+  const advice: CV = cvByLocale[request.adviceLocale ?? locale];
+
   const { plan, usage, model } = await complete(
     {
       instructions: INSTRUCTIONS,
-      input: `${factsPrompt(cv, facts)}\n\n${postingPrompt(posting)}`,
+      input: [
+        factsPrompt(cv, facts),
+        panelPrompt(advice.labels.languageLabel),
+        postingPrompt(posting)
+      ].join("\n\n"),
       format: responseFormat(facts)
     },
     { ...options, model: tailorModel }
@@ -170,7 +187,8 @@ export async function tailorResume(
         fit: clamp(assessment.fit),
         fitNote: assessment.fitNote,
         // The advertisement, which is what is the same between two runs.
-        cacheKey: posting
+        cacheKey: posting,
+        language: advice.labels.languageLabel
       },
       { ...options, model: salaryModel }
     );

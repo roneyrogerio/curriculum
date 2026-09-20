@@ -20,7 +20,7 @@
 import { OpenAiError, type ClientOptions } from "../client";
 import { bandOf, companyBandOf } from "./band";
 import { cached, remember } from "./cache";
-import { INSTRUCTIONS } from "./prompt";
+import { instructionsFor } from "./prompt";
 import { SCHEMA } from "./schema";
 import { resolveMarket, searchToolFor, type ResolvedMarket } from "./sources";
 import type { MarketQuery, MarketSalary } from "./types";
@@ -151,7 +151,7 @@ export async function searchMarketSalary(
     },
     body: JSON.stringify({
       model: options.model ?? SEARCH_MODEL,
-      instructions: INSTRUCTIONS,
+      instructions: instructionsFor(query.language),
       input: inputFor(query, market),
       /*
        * Billing decides the shape of this call. A search is $0.01 per call, and

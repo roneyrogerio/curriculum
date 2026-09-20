@@ -17,6 +17,39 @@ export default defineConfig({
   site: "https://roneyrogerio.dev",
 
   /*
+   * Declared so the one page that has no locale in its path can still find
+   * one: `/print/tailor` is a single URL behind a single Cloudflare Access
+   * rule, and giving it six addresses would mean six rules to keep in step.
+   * With the locales declared, Astro negotiates `Accept-Language` for it and
+   * hands the page `Astro.preferredLocale` — its own mechanism, on a route
+   * that renders per request and therefore has a request to read.
+   *
+   * `codes` are spelt out because the matching is against what browsers send:
+   * `fr-CA` has to reach the French CV, and `pt` the Brazilian one, which is
+   * the Portuguese most of the market writes.
+   *
+   * `routing: "manual"` because the routing here is already written, and both
+   * automatic strategies break it. Measured, on this site: with
+   * `prefixDefaultLocale: true` the middleware 404s `/print/tailor`, which has
+   * no locale in its path and cannot have one; with `false` it 404s `/pt-br/`,
+   * which is a page that exists. Manual leaves every route alone and still
+   * fills in `preferredLocale`, which is the only part of i18n this site asks
+   * for. The language gate at `/` stays a choice, not a redirect.
+   */
+  i18n: {
+    defaultLocale: "pt-br",
+    locales: [
+      { path: "pt-br", codes: ["pt-BR", "pt"] },
+      { path: "pt-pt", codes: ["pt-PT"] },
+      { path: "en-us", codes: ["en-US", "en"] },
+      { path: "en-gb", codes: ["en-GB"] },
+      { path: "es", codes: ["es", "es-ES", "es-419", "es-MX", "es-AR", "es-CL", "es-CO"] },
+      { path: "fr", codes: ["fr", "fr-FR", "fr-CA", "fr-BE", "fr-CH"] }
+    ],
+    routing: "manual"
+  },
+
+  /*
    * Still a static site: every page is built to HTML at build time, and the
    * adapter exists for the two routes that opt out with `prerender = false`
    * — the tailoring panel's endpoint and nothing else. Switching `output` to

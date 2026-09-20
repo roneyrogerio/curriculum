@@ -25,8 +25,15 @@ const docxPath = `/cv/Roney-Oliveira-Software-Engineer-${cv.locale.slice(-2).toU
       <button class="is-primary" type="button" id="print-action">{cv.labels.printAction}</button>
       <a href={pdfPath} id="download-pdf" download>PDF</a>
       <a href={docxPath} id="download-docx" download>DOCX</a>
-      {/* Privada: o Cloudflare Access pede identidade antes de a página abrir. */}
-      <a href="/print/tailor/">{cv.labels.tailor}</a>
+      {/*
+        Private: Cloudflare Access asks for identity before the page opens.
+
+        The language rides in the query string because that page is a single
+        one — one path, one access rule. A query string is not part of the
+        path, so the rule is untouched, and the language being read travels
+        with the click instead of being guessed at the other end.
+      */}
+      <a href={`/print/tailor/?lang=${cv.locale}`}>{cv.labels.tailor}</a>
       <a href={`/${cv.locale}/`}>{cv.labels.backToSite}</a>
     </div>
 

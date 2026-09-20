@@ -207,4 +207,10 @@ export interface MarketQuery {
    * posting is the thing that is actually the same.
    */
   cacheKey: string;
+  /**
+   * The language the panel is being read in, named for the model: "Français",
+   * "Español". Only the prose of the answer follows it; the figures and the
+   * enumerated fields do not.
+   */
+  language: string;
 }

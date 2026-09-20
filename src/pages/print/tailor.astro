@@ -25,6 +25,10 @@
  */
 import ResumeSheet from "../../components/ResumeSheet.astro";
 import { actions, isInputError } from "astro:actions";
+import { getPathByLocale } from "astro:i18n";
+import { allLocales, cvByLocale } from "../../data";
+import { tailorByLocale } from "../../data/tailor";
+import type { Locale } from "../../data/types";
 import { jsonForScript } from "../../lib/markup";
 import { MAX_POSTING, type tailorResume } from "../../lib/resume";
 import "../../styles/print.css";
@@ -35,6 +39,57 @@ const away = (href: string) =>
   /^(mailto|tel):/i.test(href) ? {} : { target: "_blank", rel: "noopener noreferrer nofollow" };
 
 export const prerender = false;
+
+
+/*
+ * The language this page speaks, which is the language the visitor was reading
+ * when they clicked "adapt to a posting".
+ *
+ * It travels in the query string, because it cannot be in the path: this is
+ * one URL behind one Cloudflare Access rule, and a rule is written over a
+ * path. Six addresses would be six rules to keep in step, and a forgotten one
+ * there is an open door rather than a broken page. A query string is not part
+ * of the path, so `/print/tailor?lang=fr` is the same URL to the rule and a
+ * different page to the reader.
+ *
+ * The link that leads here already knows the language — it is rendered by the
+ * page the visitor is on — so nothing has to be inferred, remembered or
+ * negotiated. And the form needs no help to keep it: a POST with no `action`
+ * goes to the current URL, query string included.
+ *
+ * `Astro.preferredLocale` is the fallback, for somebody who arrives by typing
+ * the address: the configured locales negotiated against `Accept-Language`.
+ */
+/*
+ * Everything that makes a query string safe to take is this one check.
+ *
+ * What survives it is one of six known values, never the visitor's text, and
+ * that is what closes the three doors a `?lang=` would otherwise open: the
+ * value is written into `<html lang>` and into the links back, and it is a key
+ * into `cvByLocale`. Unchecked, those are a reflected script, a redirect to
+ * somebody else's site, and a lookup of `__proto__`. Checked, all three are
+ * the default page.
+ *
+ * It does not reach the model either: what the prompts interpolate is
+ * `labels.languageLabel`, a sentence from `src/data` that this value only
+ * chooses between.
+ */
+const isLocale = (value: string | undefined | null): value is Locale =>
+  !!value && (allLocales as string[]).includes(value);
+
+/*
+ * `preferredLocale` answers in the browser's spelling — the matching code,
+ * `fr-FR` or `pt-PT` — and the site is addressed in paths, `fr` and `pt-pt`.
+ * `getPathByLocale` is the translation between the two, so the codes stay
+ * declared in one place: the config.
+ */
+const negotiated = Astro.preferredLocale ? getPathByLocale(Astro.preferredLocale) : undefined;
+const asked = Astro.url.searchParams.get("lang");
+
+const locale: Locale = isLocale(asked) ? asked : isLocale(negotiated) ? negotiated : "pt-br";
+
+const cv = cvByLocale[locale];
+const t = tailorByLocale[locale];
 
 let result: Awaited<ReturnType<typeof tailorResume>> | null = null;
 let error: string | null = null;
@@ -98,7 +153,7 @@ const toOther = (value: number) => (regime === "CLT" ? value * pjFactor : value 
  * cheaper to program but completely false.
  */
 const money = (value: number) =>
-  new Intl.NumberFormat("pt-BR", {
+  new Intl.NumberFormat(cv.lang, {
     style: "currency",
     currency: salary?.market.currency ?? "BRL",
     maximumFractionDigits: 0
@@ -121,21 +176,19 @@ const cachedShare =
 ---
 
 <!doctype html>
-<html lang="pt-BR" data-theme="light">
+<html lang={cv.lang} data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>Adaptar currículo a uma vaga</title>
+    <title>{t.pageTitle}</title>
   </head>
   <body class="print-body">
     <div class="print-bar">
-      <p class="print-bar__hint">
-        Cole a vaga inteira, título incluído. O modelo escolhe e reescreve; não acrescenta.
-      </p>
+      <p class="print-bar__hint">{t.hint}</p>
       {result && (
         <>
-          <button class="is-primary" type="button" id="print-action">Imprimir</button>
+          <button class="is-primary" type="button" id="print-action">{t.print}</button>
           {/*
             The files in /cv are the untailored résumé, so linking to them here
             would hand over the wrong document. These are built in the browser
@@ -145,12 +198,23 @@ const cachedShare =
           <button type="button" data-download="docx">DOCX</button>
         </>
       )}
-      <a href={`/${result?.locale ?? "pt-br"}/print/`}>Currículo padrão</a>
-      <a href={`/${result?.locale ?? "pt-br"}/`}>Voltar ao site</a>
+      {/*
+        The visitor's own language, not the generated résumé's: these two lead
+        back to where they were reading, and a posting written in some other
+        language does not move them.
+      */}
+      <a href={`/${locale}/print/`}>{t.standardResume}</a>
+      <a href={`/${locale}/`}>{t.backToSite}</a>
     </div>
 
     <aside class="tailor">
       <form class="tailor__box" method="post">
+        {/*
+          The language of the panel, sent with the posting: the sheet is
+          written in the language of the advertisement, and everything shown
+          beside it in the one being read here.
+        */}
+        <input type="hidden" name="lang" value={locale} />
         <div class="tailor__body">
           <textarea
             name="posting"
@@ -159,16 +223,22 @@ const cachedShare =
             required
             minlength="40"
             maxlength={MAX_POSTING}
-            placeholder="Cole aqui a descrição da vaga, com o título…"
-            aria-label="Descrição da vaga">{submitted}</textarea>
+            placeholder={t.placeholder}
+            aria-label={t.postingLabel}>{submitted}</textarea>
 
           <p class="tailor__actions">
-            <button type="submit" class="tailor__button is-primary" data-submit>
-              <span data-submit-label>Gerar</span>
+            {/* The two words the script swaps travel with the button: a module
+                script has no access to the page's locale. */}
+            <button
+              type="submit"
+              class="tailor__button is-primary"
+              data-submit
+              data-label-idle={t.generate}
+              data-label-busy={t.generating}
+            >
+              <span data-submit-label>{t.generate}</span>
             </button>
-            <span class="tailor__check">
-              Anúncio em português gera currículo em português; em inglês, em inglês.
-            </span>
+            <span class="tailor__check">{t.languageNote}</span>
           </p>
 
           {/*
@@ -178,30 +248,30 @@ const cachedShare =
           */}
           <p class="tailor__pending" role="status" aria-live="polite">
             <span class="tailor__spinner" aria-hidden="true"></span>
-            Gerando. Costuma levar de dez a vinte segundos.
+            {t.pending}
           </p>
 
-          {error && <p class="tailor__line" role="alert"><b>Erro:</b> {error}</p>}
+          {error && <p class="tailor__line" role="alert"><b>{t.errorPrefix}</b> {error}</p>}
 
           {result && (
             <div class="tailor__report">
-              <p class="tailor__line"><b>O que o modelo fez:</b> {result.rationale}</p>
+              <p class="tailor__line"><b>{t.rationale}</b> {result.rationale}</p>
 
               {salary && (
                 <div class="tailor__money">
                   <p class="tailor__line">
-                    <b>A vaga</b> ·{" "}
+                    <b>{t.postingTitle}</b> ·{" "}
                     {salary.market.postingRegime === "CLT" || salary.market.postingRegime === "PJ"
-                      ? `contrato ${salary.market.postingRegime} · `
+                      ? `${t.contract} ${salary.market.postingRegime} · `
                       : salary.market.postingRegime === "não informado"
-                        ? "contrato não informado · "
+                        ? `${t.contractUnknown} · `
                         : ""}
-                    {salary.market.source === "posting" ? "declarado no anúncio" : "pesquisa de mercado"}
+                    {salary.market.source === "posting" ? t.sourcePosting : t.sourceMarket}
                     {levelMismatch ? (
                       <>
-                        {" · anunciada como "}
+                        {` · ${t.advertisedAs} `}
                         <b>{salary.advertisedLevel}</b>
-                        {", atribuições de "}
+                        {`, ${t.dutiesOf} `}
                         <b>{salary.actualLevel}</b>
                       </>
                     ) : (
@@ -213,13 +283,13 @@ const cachedShare =
                     <thead>
                       <tr>
                         <th>{showsRegime ? regime : ""}</th>
-                        <th>por mês</th>
-                        <th>por ano</th>
+                        <th>{t.perMonth}</th>
+                        <th>{t.perYear}</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr class="is-native">
-                        <th>faixa</th>
+                        <th>{t.bandRow}</th>
                         {(["month", "year"] as const).map((period) => (
                           <td>
                             {salary.market.min === salary.market.max
@@ -229,13 +299,13 @@ const cachedShare =
                         ))}
                       </tr>
                       <tr class="tailor__rates-median">
-                        <th>mediana</th>
+                        <th>{t.medianRow}</th>
                         {(["month", "year"] as const).map((period) => (
                           <td>{money(perPeriod(salary.market.median, period))}</td>
                         ))}
                       </tr>
                       <tr class="tailor__rates-ask">
-                        <th>pedir</th>
+                        <th>{t.askRow}</th>
                         {(["month", "year"] as const).map((period) => (
                           <td>{money(perPeriod(salary.market.ask, period))}</td>
                         ))}
@@ -245,13 +315,13 @@ const cachedShare =
 
                   {showsRegime && (
                     <p class="tailor__note tailor__note--money">
-                      <b>Equivalente {otherRegime}:</b> pedir{" "}
+                      <b>{t.equivalent} {otherRegime}:</b> {t.askWord}{" "}
                       <b>{money(perPeriod(toOther(salary.market.ask), "month"))}</b>
-                      {" por mês"} · faixa{" "}
+                      {` ${t.perMonth}`} · {t.bandWord}{" "}
                       {money(perPeriod(toOther(salary.market.min), "month"))}
                       {" – "}
                       {money(perPeriod(toOther(salary.market.max), "month"))}
-                      {` · fator ${pjFactor.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}`}
+                      {` · ${t.factorWord} ${pjFactor.toLocaleString(cv.lang, { maximumFractionDigits: 2 })}`}
                       <br />
                       <small>{salary.market.regimeNote}</small>
                     </p>
@@ -265,10 +335,10 @@ const cachedShare =
                       0%" beside a median ask tells two conflicting stories;
                       the label is what was actually used.
                     */}
-                    <b>Pedir:</b>{" "}
+                    <b>{t.askTitle}</b>{" "}
                     {salary.fit > 0 && salary.fit < 100
-                      ? <>atende <b>{salary.fit}%</b> do que a vaga pede.</>
-                      : <>o encaixe no perfil não foi avaliado com confiança.</>}{" "}
+                      ? <>{t.fitBefore} <b>{salary.fit}%</b> {t.fitAfter}</>
+                      : <>{t.fitUnknown}</>}{" "}
                     {salary.market.askNote}
                   </p>
                   <p class="tailor__note tailor__note--money">{salary.market.note}</p>
@@ -278,22 +348,21 @@ const cachedShare =
                       getting the country wrong throws the band off by a multiple,
                       and it was the only calculation choice not shown on screen.
                     */}
-                    <b>Mercado:</b> {salary.market.country} · {salary.market.currency}
+                    <b>{t.marketTitle}</b> {salary.market.country} · {salary.market.currency}
                     {!salary.market.listedSources && (
-                      <span class="tailor__corrected">
-                        {" "}— país sem lista de fontes própria: a busca foi na web aberta, com a
-                        precisão que isso dá
-                      </span>
+                      <span class="tailor__corrected">{` — ${t.noSourceList}`}</span>
                     )}
                   </p>
                   <p class="tailor__note tailor__note--money">
-                    <b>Pesquisado como:</b> {salary.summary}
-                    {salary.company && salary.company !== "não informado" && ` · empresa: ${salary.company}`}
+                    <b>{t.searchedAs}</b> {salary.summary}
+                    {salary.company &&
+                      salary.company !== "não informado" &&
+                      ` · ${t.companyWord} ${salary.company}`}
                   </p>
 
                   {salary.market.sources.length > 0 && (
                     <p class="tailor__note tailor__note--money">
-                      Fontes:{" "}
+                      {t.sourcesTitle}{" "}
                       {salary.market.sources.map((source, index) => (
                         <>
                           {index > 0 && " · "}
@@ -303,7 +372,7 @@ const cachedShare =
                     </p>
                   )}
 
-                  <p class="tailor__note tailor__note--money">Nada disto sai no documento.</p>
+                  <p class="tailor__note tailor__note--money">{t.notInDocument}</p>
                 </div>
               )}
 
@@ -315,7 +384,7 @@ const cachedShare =
                     rendered. This list is what was caught, so a model that
                     starts drifting is visible rather than silently trusted.
                   */}
-                  <p class="tailor__line"><b>Reescritas rejeitadas e revertidas ao original:</b></p>
+                  <p class="tailor__line"><b>{t.violationsTitle}</b></p>
                   <ul class="tailor__missing">
                     {result.violations.map((violation) => (
                       <li><span>{violation.kind}</span> {violation.sourceId}: {violation.detail}</li>
@@ -323,7 +392,7 @@ const cachedShare =
                   </ul>
                 </>
               ) : (
-                <p class="tailor__line">Nenhuma reescrita saiu do que o currículo já diz.</p>
+                <p class="tailor__line">{t.noViolations}</p>
               )}
 
               {/*
@@ -333,9 +402,10 @@ const cachedShare =
                 where input explodes due to ingested pages — was omitted.
               */}
               <p class="tailor__note">
-                3 chamadas{result.usage.searches > 0 && `, ${result.usage.searches} buscas`} ·{" "}
-                {result.usage.inputTokens} tokens de entrada ({cachedShare}% em cache) ·{" "}
-                {result.usage.outputTokens} de saída · US$ {cost}
+                3 {t.callsWord}
+                {result.usage.searches > 0 && `, ${result.usage.searches} ${t.searchesWord}`} ·{" "}
+                {result.usage.inputTokens} {t.inputTokens} ({cachedShare}% {t.cachedShare}) ·{" "}
+                {result.usage.outputTokens} {t.outputTokens} · US$ {cost}
               </p>
             </div>
           )}
@@ -383,7 +453,7 @@ const cachedShare =
         form.dataset.busy = "true";
         form.setAttribute("aria-busy", "true");
         button?.setAttribute("aria-disabled", "true");
-        if (label) label.textContent = "Gerando";
+        if (label) label.textContent = button?.dataset.labelBusy ?? "";
       });
 
       /*
@@ -396,7 +466,7 @@ const cachedShare =
         delete form.dataset.busy;
         form.removeAttribute("aria-busy");
         button?.removeAttribute("aria-disabled");
-        if (label) label.textContent = "Gerar";
+        if (label) label.textContent = button?.dataset.labelIdle ?? "";
       });
 
       document.getElementById("print-action")?.addEventListener("click", () => window.print());

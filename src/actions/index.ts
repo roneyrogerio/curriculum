@@ -23,6 +23,8 @@ import {
   OPENAI_TAILOR_MODEL,
   OPENAI_SALARY_MODEL
 } from "astro:env/server";
+import { allLocales } from "../data";
+import type { Locale } from "../data/types";
 import { InputError, MAX_POSTING, tailorResume } from "../lib/resume";
 import { OpenAiError, RefusalError } from "../lib/resume/client";
 
@@ -44,13 +46,22 @@ export const server = {
         .min(40, "Cole a vaga inteira: esse texto é curto demais para adaptar.")
         .max(MAX_POSTING, `A vaga passa de ${MAX_POSTING} caracteres.`),
       /*
-       * No locale field: the posting's own language decides, always. An
-       * override would be a second answer to a question that already has one,
-       * and the wrong answer is silent — a résumé in a language the person who
-       * wrote the advertisement does not read.
+       * No locale field for the résumé: the posting's own language decides,
+       * always. An override would be a second answer to a question that
+       * already has one, and the wrong answer is silent — a résumé in a
+       * language the person who wrote the advertisement does not read.
+       *
+       * `lang` is a different question. It is the page the candidate is
+       * reading, and it governs only what is shown beside the sheet: the
+       * brief, the levels, the market notes. Optional, because the action is
+       * callable without it, and then the résumé's own language is used.
        */
+      lang: z
+        .enum(allLocales as [Locale, ...Locale[]])
+        .optional()
+        .catch(undefined)
     }),
-    async handler({ posting }) {
+    async handler({ posting, lang }) {
       if (!OPENAI_API_KEY) {
         throw new ActionError({
           code: "SERVICE_UNAVAILABLE",
@@ -62,6 +73,7 @@ export const server = {
         return await tailorResume(
           {
             posting,
+            adviceLocale: lang,
             model: OPENAI_TAILOR_MODEL,
             models: {
               triage: OPENAI_TRIAGE_MODEL,

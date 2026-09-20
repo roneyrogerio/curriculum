@@ -167,6 +167,7 @@ describe("the request the lookup sends", () => {
     company: "Frete.com",
     fit: 70,
     fitNote: "Go e microsserviços em produção",
+    language: "Português (Brasil)",
     cacheKey: `posting-${Math.random()}`,
     ...overrides
   });

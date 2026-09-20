@@ -2,7 +2,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cached, remember } from "./cache";
 import type { MarketQuery, MarketSalary } from "./types";
 
-const query = (cacheKey: string): MarketQuery => ({
+const query = (cacheKey: string, language = "Português (Brasil)"): MarketQuery => ({
+  language,
   summary: "Backend sênior em Go, Brasil, remoto",
   role: "Desenvolvedor Backend Sênior",
   country: "Brasil",
@@ -25,6 +26,12 @@ describe("the week-long memo on a lookup", () => {
   it("hands back what the same posting cost a search to learn", () => {
     remember(query("a"), band(15_000));
     expect(cached(query("a"))?.median).toBe(15_000);
+  });
+
+  it("keeps one posting's two languages apart, because the prose differs", () => {
+    remember(query("a", "Français"), band(15_000));
+    expect(cached(query("a", "Español"))).toBeNull();
+    expect(cached(query("a", "Français"))?.median).toBe(15_000);
   });
 
   it("reports a cached lookup as having cost nothing, because it did", () => {
