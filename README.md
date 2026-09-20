@@ -208,7 +208,18 @@ push para main
 
 merge do PR de versão
   → verifica de novo → tag e release → deploy, uma vez só
+
+push só de documentação
+  → verifica na mesma
+     nenhum PR de versão, nenhuma tag, nenhum deploy
 ```
+
+O que decide isso é o `release-please-config.json`: uma seção visível do
+changelog é unidade publicável, então `docs`, `chore`, `style` e `test` estão
+ocultas e não disparam versão. A verificação continua rodando em qualquer
+push — um commit de documentação quebra o build como outro qualquer, e saber
+disso não custa um deploy. O que não faz sentido é publicar uma imagem nova,
+byte a byte igual à anterior, porque o README mudou.
 
 - **Actions fixadas por SHA de commit**, não por tag: uma tag pode ser movida para outro
   commit, e é assim que um workflow passa a executar código de terceiros.
