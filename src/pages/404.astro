@@ -1,6 +1,29 @@
 ---
+/*
+ * The 404, which is the language gate with a different heading.
+ *
+ * It used to offer two languages of the six, written out by hand — Portuguese
+ * and American English. Nothing was wrong with either link; they were simply
+ * the two that existed when the page was written, and a visitor who arrived
+ * here from the French CV was shown the way to the Brazilian one.
+ *
+ * So the list is built from the locales that exist, exactly as `index.astro`
+ * builds its own. Adding a language stays one edit, in `src/data`.
+ */
+import { allLocales, cvByLocale } from "../data";
 import { siteUrl } from "../data/site";
 import "../styles/site.css";
+
+const options = allLocales.map((locale) => {
+  const cv = cvByLocale[locale];
+  return {
+    locale,
+    code: locale.toUpperCase(),
+    label: cv.labels.languageLabel,
+    note: cv.labels.gateNote,
+    lang: cv.hreflang
+  };
+});
 ---
 
 <!doctype html>
@@ -24,20 +47,20 @@ import "../styles/site.css";
       <h1 class="gate__name">Página não encontrada</h1>
       <p class="gate__role">This page does not exist</p>
       <ul class="gate__options">
-        <li>
-          <a class="gate__option" href="/pt-br/" hreflang="pt-BR" lang="pt-BR">
-            <span class="gate__code">PT-BR</span>
-            <span class="gate__label">Português</span>
-            <span class="gate__note">Ir para o currículo</span>
-          </a>
-        </li>
-        <li>
-          <a class="gate__option" href="/en-us/" hreflang="en-US" lang="en-US">
-            <span class="gate__code">EN-US</span>
-            <span class="gate__label">English</span>
-            <span class="gate__note">Go to the resume</span>
-          </a>
-        </li>
+        {options.map((option) => (
+          <li>
+            <a
+              class="gate__option"
+              href={`/${option.locale}/`}
+              hreflang={option.lang}
+              lang={option.lang}
+            >
+              <span class="gate__code">{option.code}</span>
+              <span class="gate__label">{option.label}</span>
+              <span class="gate__note">{option.note}</span>
+            </a>
+          </li>
+        ))}
       </ul>
       <p class="gate__foot"><a href={`${siteUrl}/`}>roneyrogerio.dev</a></p>
     </main>
