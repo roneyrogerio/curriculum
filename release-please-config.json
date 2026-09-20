@@ -23,7 +23,8 @@
     },
     {
       "type": "docs",
-      "section": "Documentação"
+      "section": "Documentação",
+      "hidden": true
     },
     {
       "type": "build",
