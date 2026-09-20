@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.1](https://github.com/roneyrogerio/curriculum/compare/v0.4.0...v0.4.1) (2026-09-20)
+
+
+### Correções
+
+* calcular a faixa salarial a partir do que as fontes publicam ([b642552](https://github.com/roneyrogerio/curriculum/commit/b642552e373bb465fb17ba1931e43a210f79ceba))
+* escrever o cargo da vaga no gênero de quem assina ([c39e811](https://github.com/roneyrogerio/curriculum/commit/c39e8117fe078f4f571d90576b8f4cbbc000dbae))
+
 ## [0.4.0](https://github.com/roneyrogerio/curriculum/compare/v0.3.3...v0.4.0) (2026-09-19)
 
 
