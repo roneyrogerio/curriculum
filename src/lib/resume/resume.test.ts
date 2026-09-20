@@ -16,7 +16,6 @@ const facts = factsOf(cv);
 /** A plan that keeps everything, rewriting nothing. The baseline to perturb. */
 function fullPlan(overrides: Partial<ResumePlan> = {}): ResumePlan {
   return {
-    language: "pt-br",
     targetRole: "Pessoa Desenvolvedora Backend",
     sectionOrder: [...MOVABLE],
     headlineIds: facts.disciplines.concat(facts.technologies).map((fact) => fact.id),
@@ -40,8 +39,6 @@ function fullPlan(overrides: Partial<ResumePlan> = {}): ResumePlan {
     rationale: "kept everything",
     posting: {
       summary: "Backend sênior em Go, fintech, Brasil, remoto",
-      company: "não informado",
-      country: "Brasil",
       advertisedLevel: "pleno",
       actualLevel: "sênior",
       fit: 0.8,
@@ -153,8 +150,6 @@ describe("facts the model never gets to write", () => {
     const plan = fullPlan({
       posting: {
         summary: "resumo que não deve aparecer",
-        company: "empresa secreta",
-        country: "país secreto",
         advertisedLevel: "pleno",
         actualLevel: "sênior",
         fit: 0.9,

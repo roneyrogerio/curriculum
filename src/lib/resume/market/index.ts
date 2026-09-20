@@ -23,7 +23,7 @@ import { cached, remember } from "./cache";
 import { INSTRUCTIONS } from "./prompt";
 import { SCHEMA } from "./schema";
 import { resolveMarket, searchToolFor, type ResolvedMarket } from "./sources";
-import type { MarketObservation, MarketQuery, MarketSalary } from "./types";
+import type { MarketQuery, MarketSalary } from "./types";
 
 export type { MarketObservation, MarketQuery, MarketSalary } from "./types";
 export { bandOf, companyBandOf } from "./band";
