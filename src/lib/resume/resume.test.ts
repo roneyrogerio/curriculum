@@ -7,6 +7,7 @@ import { factsOf, factIndex } from "./facts";
 import type { ResumePlan } from "./plan";
 import { factsPrompt, INSTRUCTIONS, postingPrompt } from "./prompt";
 import { ID_PATTERN, planSchema } from "./schema";
+import { titleForCandidate } from "./title";
 import { verifyPlan } from "./verify";
 
 const cv = cvByLocale["pt-br"];
@@ -39,6 +40,7 @@ function fullPlan(overrides: Partial<ResumePlan> = {}): ResumePlan {
     posting: {
       summary: "Backend sênior em Go, fintech, Brasil, remoto",
       company: "não informado",
+      country: "Brasil",
       advertisedLevel: "pleno",
       actualLevel: "sênior",
       fit: 0.8,
@@ -151,6 +153,7 @@ describe("facts the model never gets to write", () => {
       posting: {
         summary: "resumo que não deve aparecer",
         company: "empresa secreta",
+        country: "país secreto",
         advertisedLevel: "pleno",
         actualLevel: "sênior",
         fit: 0.9,
@@ -166,6 +169,39 @@ describe("facts the model never gets to write", () => {
   it("carries the advertised title, which is the one string from the posting", () => {
     const document = composeDocument(cv, fullPlan({ targetRole: "Staff Backend Engineer" }));
     expect(document.head.role).toBe("Staff Backend Engineer");
+  });
+
+  it("heads the sheet in one gender, whatever the advertisement did", () => {
+    const document = composeDocument(cv, fullPlan({ targetRole: "Desenvolvedor(a) Full Stack" }));
+    expect(document.head.role).toBe("Desenvolvedor Full Stack");
+    expect(document.meta.title).not.toContain("(a)");
+  });
+
+  it("falls back to the CV's own title when nothing is left of the advertised one", () => {
+    const document = composeDocument(cv, fullPlan({ targetRole: "  " }));
+    expect(document.head.role).toBe(cv.role);
+  });
+});
+
+describe("an advertised title, written for one candidate", () => {
+  it("drops the ending the posting put in parentheses", () => {
+    expect(titleForCandidate("Desenvolvedor(a) Full Stack")).toBe("Desenvolvedor Full Stack");
+    expect(titleForCandidate("Programador (a) Backend")).toBe("Programador Backend");
+    expect(titleForCandidate("Desenvolvedor/a Python")).toBe("Desenvolvedor Python");
+  });
+
+  it("drops the parenthesis that only says 'both'", () => {
+    expect(titleForCandidate("Analista de Dados (m/f)")).toBe("Analista de Dados");
+    expect(titleForCandidate("Engenheiro de Software (M/F/D)")).toBe("Engenheiro de Software");
+    expect(titleForCandidate("Tech Lead (o/a)")).toBe("Tech Lead");
+  });
+
+  it("leaves a title that carries no marker exactly as it was", () => {
+    expect(titleForCandidate("Senior Backend Engineer (Go)")).toBe("Senior Backend Engineer (Go)");
+    expect(titleForCandidate("Desenvolvedor Full Stack (React/Angular)")).toBe(
+      "Desenvolvedor Full Stack (React/Angular)"
+    );
+    expect(titleForCandidate("Pessoa Desenvolvedora Backend")).toBe("Pessoa Desenvolvedora Backend");
   });
 });
 
