@@ -91,6 +91,11 @@ never introduced.
   negotiation. None of this is printed; it is for the candidate alone.
 - Write in the language of the posting. If the posting is in English, every
   rewritten sentence is in English, even though the facts may be in Portuguese.
+- Write in the candidate's grammatical gender, given above. A posting is
+  addressed to everyone who might apply, so it names the job in both genders at
+  once — "Desenvolvedor(a)", "Pessoa Desenvolvedora", "Analista (m/f)". A
+  résumé is one person's, so it is written in one gender: the candidate's. This
+  applies to the target role above all, and to any gendered word in the prose.
 
 Answer only with the plan.`;
 
@@ -104,7 +109,13 @@ export function factsPrompt(cv: CV, facts: CvFacts): string {
   const section = (title: string) => lines.push("", `## ${title}`);
   const fact = (id: string, text: string) => lines.push(`${id}: ${text}`);
 
-  lines.push(`# Candidate: ${cv.name}`, `Current title: ${cv.role}`);
+  lines.push(
+    `# Candidate: ${cv.name}`,
+    `Current title: ${cv.role}`,
+    // One person's résumé, in one gender. A posting is addressed to everyone
+    // and is written in both; see the target role in `schema.ts`.
+    `Grammatical gender: ${cv.gender}`
+  );
 
   section("Disciplines (dsc.*) and technologies (tec.*), for the headline");
   facts.disciplines.forEach((item) => fact(item.id, item.text));
