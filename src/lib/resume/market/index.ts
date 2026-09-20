@@ -20,6 +20,7 @@
 import { OpenAiError, type ClientOptions } from "../client";
 import { bandOf, companyBandOf } from "./band";
 import { cached, remember } from "./cache";
+import { sourcesFor } from "./citations";
 import { instructionsFor } from "./prompt";
 import { SCHEMA } from "./schema";
 import { resolveMarket, searchToolFor, type ResolvedMarket } from "./sources";
@@ -237,25 +238,6 @@ export function parseMarketResponse(payload: any): MarketSalary {
     throw new OpenAiError("A busca retornou algo que não é o JSON pedido.", 502);
   }
 
-  /*
-   * The pages consulted. Citations come attached to the text, and the search
-   * item carries the full list; both are read, because a figure that cannot be
-   * traced to a page is just a guess with extra steps.
-   */
-  const sources = new Map<string, { title: string; url: string }>();
-  for (const part of parts) {
-    for (const annotation of part?.annotations ?? []) {
-      if (annotation?.type === "url_citation" && annotation.url) {
-        sources.set(annotation.url, { title: annotation.title ?? annotation.url, url: annotation.url });
-      }
-    }
-  }
-  for (const item of output) {
-    for (const source of item?.sources ?? item?.action?.sources ?? []) {
-      const url = source?.url ?? source;
-      if (typeof url === "string") sources.set(url, { title: source?.title ?? url, url });
-    }
-  }
 
   /*
    * The band the sources add up to, in place of the one the model wrote. The
@@ -263,6 +245,13 @@ export function parseMarketResponse(payload: any): MarketSalary {
    * lookup that came back with fewer than two comparable pages.
    */
   const observations = Array.isArray(found.observations) ? found.observations : [];
+
+  /*
+   * The pages consulted, narrowed to the ones the figures were copied from.
+   * A source that cannot be traced to a number on screen is just a link with
+   * extra steps — and, as often as not, a dead one. See `citations.ts`.
+   */
+  const sources = sourcesFor(output, observations);
   const band = bandOf(observations, found);
   const companyBand = companyBandOf(observations, found);
 
@@ -284,7 +273,7 @@ export function parseMarketResponse(payload: any): MarketSalary {
     companyBand,
     // Whoever aimed the search knows this; here there is only the answer.
     listedSources: false,
-    sources: [...sources.values()].slice(0, 6),
+    sources: sources.slice(0, 6),
     usage: {
       inputTokens: usage.input_tokens ?? 0,
       cachedTokens: usage.input_tokens_details?.cached_tokens ?? 0,

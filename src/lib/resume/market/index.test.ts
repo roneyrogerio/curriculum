@@ -113,8 +113,11 @@ describe("reading the salary lookup's answer", () => {
     expect(parseMarketResponse(payload(answer({ ask: 3_000, observations: sources }))).ask).toBe(12_000);
   });
 
-  it("collects the pages consulted from the citations and from the search itself", () => {
-    const recorded = payload(answer());
+  it("lists the pages the figures came from, once each, and leaves the rest out", () => {
+    // One observation, pointing at one of the two pages the search opened.
+    const recorded = payload(
+      answer({ observations: [observation({ title: "Guia", url: "https://exemplo.com/guia" })] })
+    );
     recorded.output = [
       {
         type: "web_search_call",
@@ -125,7 +128,9 @@ describe("reading the salary lookup's answer", () => {
         content: [
           {
             type: "output_text",
-            text: JSON.stringify(answer()),
+            text: JSON.stringify(
+              answer({ observations: [observation({ title: "Guia", url: "https://exemplo.com/guia" })] })
+            ),
             annotations: [
               { type: "url_citation", title: "Guia", url: "https://exemplo.com/guia" },
               // The same page cited twice is one source, not two.
@@ -137,8 +142,12 @@ describe("reading the salary lookup's answer", () => {
     ] as any;
 
     const found = parseMarketResponse(recorded);
-    expect(found.sources).toHaveLength(2);
-    expect(found.sources.map((item) => item.url)).toContain("https://glassdoor.com.br/a");
+    /*
+     * One entry: the page the figures were copied from, deduplicated. The one
+     * the search merely opened is left out — see `citations.ts`, where a real
+     * dead link from this very panel is written down.
+     */
+    expect(found.sources.map((item) => item.url)).toEqual(["https://exemplo.com/guia"]);
   });
 
   it("counts the searches, which are what the lookup is billed for", () => {
