@@ -272,7 +272,15 @@
   text-align: left;
 }
 
-/* A moeda em que o mercado de fato paga: as outras são conversão. */
+/* O cabeçalho de uma coluna de números fica onde os números ficam. À esquerda,
+   "por ano" encostava na borda de onde terminam os valores de "por mês", e a
+   tabela lia-se com as colunas trocadas. A primeira coluna é rótulo, não
+   número, e continua à esquerda. */
+.tailor__rates thead th:not(:first-child) {
+  text-align: right;
+}
+
+/* A faixa: a linha que as outras duas se leem contra. */
 .tailor__rates tr.is-native td,
 .tailor__rates tr.is-native th {
   color: #e9edf0;
@@ -289,7 +297,6 @@
 
 .tailor__rates-ask td {
   color: #f2d55c;
-  line-height: 1.6;
 }
 
 /* A mediana: é contra ela que o pedido se lê, não contra o teto. */
