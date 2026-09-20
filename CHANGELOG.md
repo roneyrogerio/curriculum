@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/roneyrogerio/curriculum/compare/v0.4.1...v0.4.2) (2026-09-20)
+
+
+### Correções
+
+* pesquisar o salário no mercado do país da vaga ([70025d7](https://github.com/roneyrogerio/curriculum/commit/70025d7f144c9ac3c9179a65744d1481e5fb6716))
+
 ## [0.4.1](https://github.com/roneyrogerio/curriculum/compare/v0.4.0...v0.4.1) (2026-09-20)
 
 
