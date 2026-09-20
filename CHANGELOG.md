@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/roneyrogerio/curriculum/compare/v0.7.0...v0.7.1) (2026-09-20)
+
+
+### Correções
+
+* listar como fontes só as páginas de onde os números saíram ([a1c51a1](https://github.com/roneyrogerio/curriculum/commit/a1c51a1471f20d90c9749acc983389e9d0cb1724))
+
 ## [0.7.0](https://github.com/roneyrogerio/curriculum/compare/v0.6.1...v0.7.0) (2026-09-20)
 
 
