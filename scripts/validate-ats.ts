@@ -11,14 +11,18 @@
  */
 import { readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import { cvByLocale } from "../src/data/index.ts";
+import { allLocales, cvByLocale } from "../src/data/index.ts";
 import { headlineOf } from "../src/lib/headline.ts";
 import { inflateRawSync } from "node:zlib";
 
 const root = resolve(import.meta.dirname, "..");
 const cvDir = join(root, "public", "cv");
 
-const locales = ["pt-br", "en-us"];
+/*
+ * Cada locale que existe, e não uma lista escrita aqui: um currículo novo que
+ * ninguém valida é um currículo que só falha na frente de quem o recebeu.
+ */
+const locales = allLocales;
 
 const expectations = {
   "pt-br": {
@@ -33,6 +37,62 @@ const expectations = {
     ],
     order: ["Roney de Oliveira", "RESUMO PROFISSIONAL", "EXPERIÊNCIA PROFISSIONAL", "FORMAÇÃO ACADÊMICA"],
     titles: ["Engenheiro de Software Sênior", "Engenheiro de Software Pleno", "Desenvolvedor Full Stack"],
+    skills: ["Go", "Kubernetes", "PostgreSQL", "Docker", "Terraform", "AWS Lambda", "Knative"]
+  },
+  "pt-pt": {
+    sections: [
+      "RESUMO PROFISSIONAL",
+      "COMPETÊNCIAS TÉCNICAS",
+      "EXPERIÊNCIA PROFISSIONAL",
+      "PROJETOS",
+      "FORMAÇÃO ACADÉMICA",
+      "CERTIFICAÇÕES",
+      "IDIOMAS"
+    ],
+    order: ["Roney de Oliveira", "RESUMO PROFISSIONAL", "EXPERIÊNCIA PROFISSIONAL", "FORMAÇÃO ACADÉMICA"],
+    titles: ["Engenheiro de Software Sénior", "Engenheiro de Software Intermédio", "Desenvolvedor Full Stack"],
+    skills: ["Go", "Kubernetes", "PostgreSQL", "Docker", "Terraform", "AWS Lambda", "Knative"]
+  },
+  "en-gb": {
+    sections: [
+      "PROFESSIONAL SUMMARY",
+      "TECHNICAL SKILLS",
+      "PROFESSIONAL EXPERIENCE",
+      "PROJECTS",
+      "EDUCATION",
+      "CERTIFICATIONS",
+      "LANGUAGES"
+    ],
+    order: ["Roney de Oliveira", "PROFESSIONAL SUMMARY", "PROFESSIONAL EXPERIENCE", "EDUCATION"],
+    titles: ["Senior Software Engineer", "Mid-Level Software Engineer", "Full Stack Developer"],
+    skills: ["Go", "Kubernetes", "PostgreSQL", "Docker", "Terraform", "AWS Lambda", "Knative"]
+  },
+  fr: {
+    sections: [
+      "PROFIL PROFESSIONNEL",
+      "COMPÉTENCES TECHNIQUES",
+      "EXPÉRIENCE PROFESSIONNELLE",
+      "PROJETS",
+      "FORMATION",
+      "CERTIFICATIONS",
+      "LANGUES"
+    ],
+    order: ["Roney de Oliveira", "PROFIL PROFESSIONNEL", "EXPÉRIENCE PROFESSIONNELLE", "FORMATION"],
+    titles: ["Ingénieur logiciel senior", "Ingénieur logiciel intermédiaire", "Développeur Full Stack"],
+    skills: ["Go", "Kubernetes", "PostgreSQL", "Docker", "Terraform", "AWS Lambda", "Knative"]
+  },
+  es: {
+    sections: [
+      "RESUMEN PROFESIONAL",
+      "COMPETENCIAS TÉCNICAS",
+      "EXPERIENCIA PROFESIONAL",
+      "PROYECTOS",
+      "FORMACIÓN ACADÉMICA",
+      "CERTIFICACIONES",
+      "IDIOMAS"
+    ],
+    order: ["Roney de Oliveira", "RESUMEN PROFESIONAL", "EXPERIENCIA PROFESIONAL", "FORMACIÓN ACADÉMICA"],
+    titles: ["Ingeniero de Software Sénior", "Ingeniero de Software Semisénior", "Desarrollador Full Stack"],
     skills: ["Go", "Kubernetes", "PostgreSQL", "Docker", "Terraform", "AWS Lambda", "Knative"]
   },
   "en-us": {
@@ -57,7 +117,13 @@ const patterns = {
   linkedin: /linkedin\.com\/in\/[\w-]+/i,
   github: /github\.com\/[\w-]+/i,
   /** A date range a parser can turn into an employment period. */
-  dateRange: /(\w{3,}\/?\s?\d{4})\s*[–-]\s*(\w{3,}\/?\s?\d{4})/g
+  /*
+   * `\p{L}` e não `\w`: os meses abreviados em francês trazem acento —
+   * "août", "déc" —, e `\w` não casa com eles. A verificação passava a contar
+   * cinco períodos onde havia oito, e a falha apontava para o currículo em vez
+   * de apontar para esta linha.
+   */
+  dateRange: /(\p{L}{3,}\/?\s?\d{4})\s*[–-]\s*(\p{L}{3,}\/?\s?\d{4})/gu
 };
 
 /** A4 width and the page margin the print stylesheet declares, both in points. */
@@ -224,14 +290,20 @@ function auditText(text: string, expected: any, source: string) {
   const exotic = text.match(/[\u2713\u2714\u27A2\u27A4\u2605\u2606\u25B6\u25CF\u25AA\u2192\u00BB]/g) ?? [];
   check(`${source}: sem símbolo exótico de marcador`, exotic.length === 0, `${exotic.length} encontrados`);
 
+  /*
+   * Os primeiros itens que o currículo deste locale realmente tem, lidos de
+   * src/data em vez de escritos aqui. A versão anterior trazia as frases em
+   * português e em inglês dentro da expressão regular, e um currículo em
+   * espanhol reprovava sem ter nada de errado — a verificação é sobre a
+   * quebra de linha, não sobre o idioma.
+   */
+  const openings = expected.openings as string[];
   const highlightLines = text
     .split("\n")
     // The bullet glyph sits in the same extracted line as its text, so it is
     // stripped before checking that the item starts a line of its own.
     .map((line) => line.trim().replace(/^[\u2022\u00b7\u2013\u2014-]+\s*/, ""))
-    .filter((line) =>
-      /^(Atuação de ponta|Worked end to end|Implementação de funcionalidades|Implemented features)/.test(line)
-    );
+    .filter((line) => openings.some((opening) => line.startsWith(opening)));
   check(
     `${source}: itens em linhas separadas`,
     highlightLines.length >= 1,
@@ -277,6 +349,14 @@ function auditFreshness(text: string, locale: keyof typeof cvByLocale, source: s
 
 console.log("Simulação de parsing de ATS\n" + "=".repeat(60));
 
+/** As primeiras palavras de cada item de experiência, vindas dos dados. */
+function openingsOf(locale: keyof typeof cvByLocale): string[] {
+  return cvByLocale[locale].positions
+    .flatMap((position) => position.highlights.slice(0, 1))
+    .map((highlight) => highlight.split(/[,:;.]/)[0].trim())
+    .filter((opening) => opening.length > 12);
+}
+
 for (const locale of locales) {
   console.log(`\n### ${locale.toUpperCase()} — PDF`);
   const pdf = await extractPdf(join(cvDir, `Roney-Oliveira-Software-Engineer-${locale.slice(-2).toUpperCase()}.pdf`));
@@ -298,7 +378,7 @@ for (const locale of locales) {
           .join("; ")
       : `limite ${overflowLimit.toFixed(1)}pt respeitado`
   );
-  auditText(pdf.text, expectations[locale], `PDF ${locale}`);
+  auditText(pdf.text, { ...expectations[locale], openings: openingsOf(locale) }, `PDF ${locale}`);
 
   auditFreshness(pdf.text, locale, `PDF ${locale}`);
 
@@ -312,7 +392,7 @@ for (const locale of locales) {
     `${docx.headerFooterParts} partes`
   );
   check(`DOCX ${locale}: estilos de título reais`, docx.headings >= 15, `${docx.headings} parágrafos com estilo Heading`);
-  auditText(docx.text, expectations[locale], `DOCX ${locale}`);
+  auditText(docx.text, { ...expectations[locale], openings: openingsOf(locale) }, `DOCX ${locale}`);
   auditFreshness(docx.text, locale, `DOCX ${locale}`);
 }
 

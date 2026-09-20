@@ -2,32 +2,68 @@
 
 /* ---------------------------------------------------------------- toolbar */
 
+/* A barra quebra em linhas em vez de transbordar.
+   Com `justify-content: flex-end` e seis idiomas, o que não cabia saía pela
+   esquerda — fora da tela e fora de alcance, porque um flex container não
+   rola. No telemóvel isso escondia o seletor de idioma inteiro. Agora as
+   linhas quebram, e cada grupo que ainda assim não couber rola dentro de si. */
 .toolbar {
   position: sticky;
   top: 0;
   z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.4rem;
-  padding: 0.7rem clamp(1rem, 4vw, 3rem);
+  padding: 0.7rem 0;
   border-bottom: 1px solid var(--rule);
   background: color-mix(in srgb, var(--paper) 86%, transparent);
   backdrop-filter: blur(10px);
+}
+
+/* A mesma largura e o mesmo recuo de `.shell`, para as pílulas pararem onde o
+   currículo para. Sozinhas elas seguiam a borda da janela, e num monitor largo
+   ficavam a um palmo do conteúdo a que pertencem. */
+.toolbar__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 4vw, 3rem);
 }
 
 .toolbar__group {
   display: flex;
   align-items: center;
   gap: 1px;
+  /* Nunca mais largo que a tela: se os seis idiomas não couberem numa linha,
+     o grupo rola dentro do próprio contorno em vez de empurrar o resto. */
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
   padding: 2px;
   border: 1px solid var(--rule);
   border-radius: 999px;
   background: var(--surface);
 }
 
+.toolbar__group::-webkit-scrollbar {
+  display: none;
+}
+
 .toolbar__link,
 .toolbar__theme {
+  flex: none;
+}
+
+/* Uma altura só para os dois: o link herdava a entrelinha do corpo e o botão
+   tinha `line-height: 1`, então o grupo do tema ficava visivelmente mais baixo
+   que os vizinhos. A altura passa a ser declarada, e não herdada. */
+.toolbar__link,
+.toolbar__theme {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.7rem;
+  line-height: 1;
   padding: 0.32rem 0.72rem;
   border: 0;
   border-radius: 999px;
@@ -47,10 +83,17 @@
   color: var(--accent-ink);
 }
 
+/* Ícone e palavra lado a lado: a pílula do tema é do mesmo tamanho e do mesmo
+   tipo que a do idioma, porque faz o mesmo tipo de coisa. */
 .toolbar__theme {
-  min-width: 2rem;
-  padding: 0.32rem 0.5rem;
-  font-size: 0.78rem;
+  gap: 0.4rem;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.toolbar__theme [data-theme-icon] {
+  font-size: 0.85rem;
   line-height: 1;
 }
 
@@ -750,8 +793,16 @@ code {
   font-size: 0.8rem;
 }
 
+/* Todos os cartões com a mesma altura, sempre.
+   `grid-auto-rows: 1fr` iguala as linhas entre si e `stretch` faz cada item
+   ocupar a linha inteira, então um texto que quebra em duas linhas — a nota
+   do português europeu é a mais longa — deixa de puxar o vizinho para baixo.
+   Sem isto, a página muda de desenho conforme a tradução, que é o tipo de
+   coisa que só aparece quando se acrescenta um idioma. */
 .gate__options {
   display: grid;
+  grid-auto-rows: 1fr;
+  align-items: stretch;
   gap: 0.6rem;
   margin: 2.2rem 0 0;
   padding: 0;
@@ -767,7 +818,10 @@ code {
 .gate__option {
   display: block;
   position: relative;
-  padding: 1.1rem 1.2rem;
+  height: 100%;
+  /* Espaço à direita para o selo de sugestão, que é absoluto: sem ele, um
+     rótulo longo passaria por baixo do código do idioma. */
+  padding: 1.1rem 5.5rem 1.1rem 1.2rem;
   border: 1px solid var(--rule);
   border-radius: var(--radius);
   background: var(--surface);
@@ -780,8 +834,30 @@ code {
   transform: translateY(-2px);
 }
 
+/* Uma sugestão do navegador, e não uma escolha já feita: a borda sozinha lia
+   como "selecionado" numa página onde nada está selecionado, ainda mais com
+   seis opções. O rótulo diz o que a cor só insinuava. */
 .gate__option.is-suggested {
   border-color: var(--accent);
+}
+
+/* Fora do fluxo, no alto à direita: no fluxo ele acrescentava uma linha e o
+   cartão sugerido ficava mais alto que os outros. Uma sugestão aponta; ela
+   não redesenha a página. */
+.gate__suggested {
+  position: absolute;
+  top: 1.1rem;
+  right: 1.2rem;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  visibility: hidden;
+}
+
+.gate__option.is-suggested .gate__suggested {
+  visibility: visible;
 }
 
 .gate__code {
@@ -868,4 +944,24 @@ code {
 
 .chips li:has(a):hover {
   border-color: var(--accent);
+}
+
+/* A linha do título do portal: o rótulo à esquerda, o tema à direita, na
+   mesma coluna das opções logo abaixo.
+   O seletor já reutilizou a classe `.toolbar` — e veio com a borda inferior
+   de uma barra que atravessa a tela, terminando no meio do nada —, e já ficou
+   solto no canto da janela, alinhado com coisa nenhuma. Aqui ele tem a
+   largura do conteúdo, como tudo o mais nesta página. */
+.gate__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  /* O espaço até o nome vinha da margem do próprio rótulo, que agora divide a
+     linha com o seletor: passa para a linha inteira, senão o título encosta. */
+  margin-bottom: 1rem;
+}
+
+.gate__top .eyebrow {
+  margin-bottom: 0;
 }

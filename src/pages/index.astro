@@ -9,26 +9,41 @@ import { jsonForScript } from "../lib/markup";
  * detection would always resolve to the same version. The page suggests a
  * language instead of forcing one.
  */
-import { cvByLocale } from "../data";
+import ThemeSwitch from "../components/ThemeSwitch.astro";
+import { allLocales, cvByLocale } from "../data";
 import { siteUrl } from "../data/site";
 import "../styles/site.css";
 
-const options = [
-  {
-    locale: "pt-br" as const,
-    code: "PT-BR",
-    label: "Português",
-    note: "Currículo completo em português",
-    lang: "pt-BR"
-  },
-  {
-    locale: "en-us" as const,
-    code: "EN-US",
-    label: "English",
-    note: "Full resume in English",
-    lang: "en-US"
-  }
-];
+/*
+ * Built from the locales that exist, in their own words.
+ *
+ * The list used to be written here, which meant a new language was three
+ * edits: the data file, this array, and the hreflang tags below. Two of them
+ * were easy to forget, and forgetting them is invisible — the page still
+ * renders, just without the language anyone came for.
+ */
+const options = allLocales.map((locale) => {
+  const cv = cvByLocale[locale];
+  return {
+    locale,
+    code: locale.toUpperCase(),
+    label: cv.labels.languageLabel,
+    note: cv.labels.gateNote,
+    suggested: cv.labels.gateSuggested,
+    lang: cv.hreflang
+  };
+});
+
+/* The gate has no language of its own, so its chrome speaks the site default. */
+const { labels } = cvByLocale["pt-br"];
+
+/*
+ * Os idiomas oferecidos, nos nomes deles, para o título e a descrição.
+ * Escritos à mão, os dois anunciavam "PT-BR / EN-US / ES-ES" — uma lista
+ * desatualizada citando um código que já não existe. Ninguém repara numa
+ * descrição velha; ela só aparece no resultado de busca.
+ */
+const offered = options.map((option) => option.label).join(", ");
 
 const schema = {
   "@context": "https://schema.org",
@@ -36,7 +51,7 @@ const schema = {
   "@id": `${siteUrl}/#website`,
   url: `${siteUrl}/`,
   name: "Roney de Oliveira",
-  inLanguage: ["pt-BR", "en-US"],
+  inLanguage: options.map((option) => option.lang),
   about: { "@id": `${siteUrl}/#person` }
 };
 ---
@@ -46,15 +61,16 @@ const schema = {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Roney de Oliveira — Software Engineer | Currículo PT-BR / EN-US</title>
+    <title>Roney de Oliveira — Software Engineer | Currículo · CV · Resume</title>
     <meta
       name="description"
-      content="Currículo de Roney de Oliveira, Software Engineer backend, full stack e DevOps. Disponível em português e inglês. Resume available in Portuguese and English."
+      content={`Currículo de Roney de Oliveira, Software Engineer backend, full stack e DevOps. Disponível em ${offered}.`}
     />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href={`${siteUrl}/`} />
-    <link rel="alternate" hreflang="pt-BR" href={`${siteUrl}/pt-br/`} />
-    <link rel="alternate" hreflang="en-US" href={`${siteUrl}/en-us/`} />
+    {options.map((option) => (
+      <link rel="alternate" hreflang={option.lang} href={`${siteUrl}/${option.locale}/`} />
+    ))}
     <link rel="alternate" hreflang="x-default" href={`${siteUrl}/`} />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Roney de Oliveira — Software Engineer" />
@@ -84,7 +100,16 @@ const schema = {
   </head>
   <body class="gate-body">
     <main class="gate">
-      <p class="eyebrow">Curriculum vitae</p>
+      {/*
+        O seletor de tema mora aqui, na linha do título e dentro da mesma
+        coluna das opções: esta é a primeira página que alguém abre, e ela
+        tinha o script que restaura um tema salvo sem ter como escolher um.
+        Solto no canto da janela ele não se alinhava com nada.
+      */}
+      <div class="gate__top">
+        <p class="eyebrow">Curriculum vitae</p>
+        <ThemeSwitch labels={labels} />
+      </div>
       <h1 class="gate__name">{cvByLocale["pt-br"].name}</h1>
       <p class="gate__role">Software Engineer · Backend · Full Stack · DevOps</p>
 
@@ -95,14 +120,28 @@ const schema = {
               <span class="gate__code">{option.code}</span>
               <span class="gate__label">{option.label}</span>
               <span class="gate__note">{option.note}</span>
+              {/*
+                Presente nos seis, visível em um. Escondê-lo com `hidden`
+                tirava a linha do fluxo e o cartão sugerido ficava mais alto
+                que os outros — a sugestão mexia no desenho da página em vez
+                de só apontar. O CSS reserva o espaço e alterna a visibilidade.
+              */}
+              <span class="gate__suggested">{option.suggested}</span>
             </a>
           </li>
         ))}
       </ul>
 
+      {/*
+        Sem atalho para PDF aqui.
+        Havia um, e ele apontava para /pt-br/print/ — escolhia o português por
+        quem ainda não escolheu idioma nenhum, que é a única coisa que esta
+        página faz. Apontá-lo para o idioma sugerido seria um link que muda
+        conforme o navegador de quem olha, e continuaria escolhendo. Os dois
+        formatos estão a um clique de dentro de qualquer uma das seis opções,
+        já no idioma certo. GitHub e LinkedIn ficam: não têm idioma.
+      */}
       <p class="gate__foot">
-        <a href="/pt-br/print/">PDF / DOCX</a>
-        <span aria-hidden="true">·</span>
         <a href="https://github.com/roneyrogerio" target="_blank" rel="noopener noreferrer nofollow">GitHub</a>
         <span aria-hidden="true">·</span>
         <a href="https://www.linkedin.com/in/roneyrogerio/" target="_blank" rel="noopener noreferrer nofollow">LinkedIn</a>
@@ -110,13 +149,43 @@ const schema = {
     </main>
 
     <script is:inline>
-      /* Suggests a language without redirecting: both versions stay reachable. */
+      /* Suggests a language without redirecting: every version stays reachable. */
       (function () {
-        var wantsEnglish = !(navigator.language || "pt").toLowerCase().startsWith("pt");
-        var target = document.querySelector(wantsEnglish ? '[hreflang="en-US"]' : '[hreflang="pt-BR"]');
-        if (target && target.classList.contains("gate__option")) {
-          target.classList.add("is-suggested");
+        var options = Array.prototype.slice.call(document.querySelectorAll(".gate__option"));
+        if (!options.length) return;
+
+        function tagOf(option) {
+          return (option.getAttribute("hreflang") || "").toLowerCase();
         }
+
+        /*
+         * navigator.languages, in order, and not navigator.language alone:
+         * someone browsing in English with Portuguese second should be
+         * offered English, and someone with only "pt" should still land on
+         * Portuguese. An exact tag wins over a bare language, so "pt-pt"
+         * reaches Portugal rather than Brazil.
+         */
+        var preferences = (navigator.languages && navigator.languages.length
+          ? navigator.languages
+          : [navigator.language || "pt"]
+        ).map(function (tag) {
+          return String(tag).toLowerCase();
+        });
+
+        var match = null;
+        for (var i = 0; i < preferences.length && !match; i += 1) {
+          var wanted = preferences[i];
+          match =
+            options.filter(function (option) {
+              return tagOf(option) === wanted;
+            })[0] ||
+            options.filter(function (option) {
+              return tagOf(option).split("-")[0] === wanted.split("-")[0];
+            })[0] ||
+            null;
+        }
+
+        if (match) match.classList.add("is-suggested");
       })();
     </script>
   </body>

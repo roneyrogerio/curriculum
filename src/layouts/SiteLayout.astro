@@ -1,5 +1,6 @@
 ---
 import BaseHead from "../components/BaseHead.astro";
+import ThemeSwitch from "../components/ThemeSwitch.astro";
 import type { CV } from "../data/types";
 import "../styles/site.css";
 
@@ -10,13 +11,13 @@ interface Props {
 const { cv } = Astro.props;
 const { labels } = cv;
 const path = `/${cv.locale}/`;
-const isPtBr = cv.locale === "pt-br";
-
-const themeOptions = [
-  { value: "auto", label: labels.themeAuto, icon: "◐" },
-  { value: "light", label: labels.themeLight, icon: "○" },
-  { value: "dark", label: labels.themeDark, icon: "●" }
-];
+/*
+ * Every string on this page comes from the locale's own labels.
+ *
+ * There was a boolean here — `isPtBr` — and everything it touched read as
+ * "Portuguese, or else English". A third language turned that into a bug you
+ * could see: the Spanish page rendered with English chrome.
+ */
 ---
 
 <!doctype html>
@@ -38,41 +39,32 @@ const themeOptions = [
     </script>
   </head>
   <body>
-    <a class="skip-link" href="#content">{isPtBr ? "Ir para o conteúdo" : "Skip to content"}</a>
+    <a class="skip-link" href="#content">{labels.skipToContent}</a>
 
     <div class="toolbar">
-      <nav class="toolbar__group" aria-label={labels.languageSwitch}>
-        <a class="toolbar__link" href="/pt-br/" hreflang="pt-BR" aria-current={isPtBr ? "true" : undefined}>PT</a>
-        <a class="toolbar__link" href="/en-us/" hreflang="en-US" aria-current={!isPtBr ? "true" : undefined}>EN</a>
+      {/*
+        A barra atravessa a tela; o conteúdo dela, não.
+        Sem este invólucro as pílulas seguiam a borda da janela, e num monitor
+        largo iam parar longe do currículo, que para em 1180px. A moldura
+        continua de ponta a ponta — é o que a faz parecer uma barra — e o que
+        está dentro segue a mesma coluna do texto.
+      */}
+      <div class="toolbar__inner">
         {/*
-          The printed sheet, which is what this link has always led to: the
-          adaptation to a job posting lives inside it, not beside it, so
-          naming it after the posting promised a page that does not exist.
+          Só o que não está repetido na página.
+          A barra trazia IMPRESSÃO, PDF e DOCX, e os três já são botões no
+          cabeçalho, a um rolar de distância. Com seis idiomas ela passou da
+          largura de um telemóvel e quebrou em duas linhas para mostrar
+          duplicatas. O que sobra é o que existe só aqui: onde se está, com a
+          volta para trocar de idioma, e o tema.
         */}
-        <a class="toolbar__link toolbar__link--accent" href={`/${cv.locale}/print/`}>
-          {isPtBr ? "IMPRESSÃO" : "PRINT"}
-        </a>
-      </nav>
+        <nav class="toolbar__group">
+          <a class="toolbar__link" href="/" aria-label={labels.languageSwitch}>
+            <span aria-hidden="true">←</span> {labels.languageName}
+          </a>
+        </nav>
 
-      <div class="toolbar__group">
-        <a class="toolbar__link" href={`/cv/Roney-Oliveira-Software-Engineer-${cv.locale.slice(-2).toUpperCase()}.pdf`} download>PDF</a>
-        <a class="toolbar__link" href={`/cv/Roney-Oliveira-Software-Engineer-${cv.locale.slice(-2).toUpperCase()}.docx`} download>DOCX</a>
-      </div>
-
-      <div class="toolbar__group" role="radiogroup" aria-label={labels.themeLabel} id="theme-switch">
-        {themeOptions.map((option) => (
-          <button
-            class="toolbar__theme"
-            type="button"
-            role="radio"
-            aria-checked={option.value === "auto" ? "true" : "false"}
-            aria-label={option.label}
-            title={option.label}
-            data-theme-value={option.value}
-          >
-            <span aria-hidden="true">{option.icon}</span>
-          </button>
-        ))}
+        <ThemeSwitch labels={labels} />
       </div>
     </div>
 
@@ -80,45 +72,6 @@ const themeOptions = [
 
     <script is:inline>
       (function () {
-        const root = document.documentElement;
-        const buttons = Array.from(document.querySelectorAll("[data-theme-value]"));
-
-        function currentTheme() {
-          try {
-            const stored = localStorage.getItem("theme");
-            if (stored === "light" || stored === "dark") return stored;
-          } catch (error) {
-            /* ignore */
-          }
-          return "auto";
-        }
-
-        function apply(theme) {
-          if (theme === "auto") {
-            delete root.dataset.theme;
-            try {
-              localStorage.removeItem("theme");
-            } catch (error) {
-              /* ignore */
-            }
-          } else {
-            root.dataset.theme = theme;
-            try {
-              localStorage.setItem("theme", theme);
-            } catch (error) {
-              /* ignore */
-            }
-          }
-          buttons.forEach((button) => {
-            button.setAttribute("aria-checked", button.dataset.themeValue === theme ? "true" : "false");
-          });
-        }
-
-        apply(currentTheme());
-        buttons.forEach((button) => {
-          button.addEventListener("click", () => apply(button.dataset.themeValue));
-        });
-
         const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         if (!reduceMotion && "IntersectionObserver" in window) {
           /* Only sections starting below the fold are hidden, so what is already

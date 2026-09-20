@@ -1,0 +1,98 @@
+---
+/**
+ * One switch, not three buttons.
+ *
+ * The control used to offer auto, light and dark, which asked the visitor to
+ * understand a distinction the page can keep to itself: auto is not a third
+ * appearance, it is the absence of a choice. So this shows the appearance in
+ * effect and flips it.
+ *
+ * It says what a click does rather than what is on screen, and says it in
+ * words. A lone circle was the whole control for a while, and nothing about
+ * it announced that it was about the theme at all — the other item in this
+ * bar is a text pill, so this one is too.
+ *
+ * The state that flipping produces is deliberately small. Nothing is stored
+ * until the inverted theme is chosen, and choosing the system's own theme
+ * again removes the key rather than writing "auto" — so a visitor who never
+ * touches this, and one who flipped twice, end in exactly the same state:
+ * following the system, including when the system changes later, which the
+ * listener below picks up live.
+ */
+interface Props {
+  /** The locale's own words. `themeLight` and `themeDark` title the action. */
+  labels: { themeLabel: string; themeLight: string; themeDark: string };
+}
+
+const { labels } = Astro.props;
+---
+
+<div class="toolbar__group">
+  <button
+    class="toolbar__link toolbar__theme"
+    type="button"
+    id="theme-toggle"
+    title={labels.themeLabel}
+    data-label-light={labels.themeLight}
+    data-label-dark={labels.themeDark}
+  >
+    <span aria-hidden="true" data-theme-icon>☾</span>
+    <span data-theme-text>{labels.themeDark}</span>
+  </button>
+</div>
+
+<script is:inline>
+  (function () {
+    const root = document.documentElement;
+    const button = document.getElementById("theme-toggle");
+    if (!button) return;
+
+    const icon = button.querySelector("[data-theme-icon]");
+    const text = button.querySelector("[data-theme-text]");
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+
+    function stored() {
+      try {
+        const value = localStorage.getItem("theme");
+        return value === "light" || value === "dark" ? value : null;
+      } catch (error) {
+        /* storage blocked; the system preference still applies */
+        return null;
+      }
+    }
+
+    const system = () => (media.matches ? "dark" : "light");
+    const effective = () => stored() || system();
+
+    function render() {
+      /*
+       * The button advertises the appearance a click produces, not the one in
+       * effect: a control labelled with the current state reads as a status
+       * line, and this one is an action.
+       */
+      const goingDark = effective() !== "dark";
+      if (icon) icon.textContent = goingDark ? "☾" : "☀";
+      if (text) text.textContent = goingDark ? button.dataset.labelDark : button.dataset.labelLight;
+    }
+
+    button.addEventListener("click", function () {
+      const next = effective() === "dark" ? "light" : "dark";
+      try {
+        if (next === system()) {
+          localStorage.removeItem("theme");
+        } else {
+          localStorage.setItem("theme", next);
+        }
+      } catch (error) {
+        /* ignore: the theme still applies for this page view */
+      }
+      if (next === system()) delete root.dataset.theme;
+      else root.dataset.theme = next;
+      render();
+    });
+
+    /* Following the system means following it as it changes, too. */
+    media.addEventListener("change", render);
+    render();
+  })();
+</script>

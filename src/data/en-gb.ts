@@ -1,10 +1,24 @@
 import { contact } from "./site";
 import type { CV } from "./types";
 
-export const enUs: CV = {
-  locale: "en-us",
-  lang: "en-US",
-  hreflang: "en-US",
+/*
+ * British English, for the two markets that ask for a CV rather than a resume.
+ *
+ * It is a small file to justify and an easy one to skip, so the reason is
+ * worth stating: in the United Kingdom essentially every advertisement asks
+ * for a "CV", and "resume" is not a word used there. Ireland follows the same
+ * convention. A document that calls itself a resume announces that it was
+ * written for somewhere else before a single line of it is read.
+ *
+ * The rest is spelling — "optimised", "organisation", "specialisation" — and
+ * the -ise forms are what a British reader expects even though both are now
+ * accepted. Nothing about the candidate changes between this file and the
+ * American one, which is exactly why they must not drift apart.
+ */
+export const enGb: CV = {
+  locale: "en-gb",
+  lang: "en-GB",
+  hreflang: "en-GB",
   name: "Roney de Oliveira",
   role: "Software Engineer",
   gender: "masculine",
@@ -23,7 +37,7 @@ export const enUs: CV = {
   ],
   seoTitle: "Roney de Oliveira — Backend, Frontend and DevOps Software Engineer",
   seoDescription:
-    "Resume of Roney de Oliveira, a Software Engineer with 8 years of experience in Go, Node.js, React, microservices, AWS, GCP, Oracle Cloud, Kubernetes and Knative. Open to remote roles.",
+    "CV of Roney de Oliveira, a Software Engineer with 8 years of experience in Go, Node.js, React, microservices, AWS, GCP, Oracle Cloud, Kubernetes and Knative. Open to remote roles.",
   summary: [
     "Software engineer with hands-on experience building web applications, APIs and production microservices end to end, across backend, frontend and DevOps.",
     "Works mainly with Go, PostgreSQL, Node.js and React, plus cloud platforms (AWS, GCP and Oracle Cloud), containers and service-oriented architecture.",
@@ -76,7 +90,7 @@ export const enUs: CV = {
         { name: "Asynchronous messaging", alias: ["Message queues"], level: 4 },
         { name: "Resilience", alias: ["Fault tolerance"], level: 4 },
         { name: "Scalability", level: 5 },
-        { name: "Performance optimization", alias: ["Performance"], level: 4 }
+        { name: "Performance optimisation", alias: ["Performance"], level: 4 }
       ]
     },
     {
@@ -110,7 +124,7 @@ export const enUs: CV = {
         { name: "SQLite", level: 3 },
         { name: "Prisma", level: 3 },
         { name: "Data modeling", level: 4 },
-        { name: "Query optimization", level: 4 },
+        { name: "Query optimisation", level: 4 },
         { name: "Linux", level: 5 },
         { name: "Self-hosted LLM inference", alias: ["Local LLM"], level: 3 },
         { name: "Llama", alias: ["Ollama"], level: 3 },
@@ -274,13 +288,13 @@ export const enUs: CV = {
         "Authoritative Go server: all flight physics and line-versus-line duelling run server-side, with the browser only rendering and sending inputs, which removes the client-side cheating surface.",
         "Custom binary WebSocket protocol, little endian, with a reference frame written by Go and decoded by the TypeScript client test: changing one side without the other breaks the build.",
         "Interest management that treats each player as a line segment, hand to kite, on a 48 m spatial grid with a 120 m radius and hysteresis — 12 µs per player, zero allocation.",
-        "Profile-guided optimization: a sorted sweep replacing all-pairs comparison (28 ms to ~1 ms per tick) and quickselect replacing sorting in per-send kite selection (16% to 2.4% of tick CPU).",
+        "Profile-guided optimisation: a sorted sweep replacing all-pairs comparison (28 ms to ~1 ms per tick) and quickselect replacing sorting in per-send kite selection (16% to 2.4% of tick CPU).",
         "Purpose-built load test with 5,000 concurrent WebSockets, no connection failures or drops; production runs the room at 140 flyers and 15 frames per second, a limit set by the 10 Mbps load balancer rather than by CPU.",
         "Runs on Knative over Kubernetes with two services and two domains, images on GHCR and automated versioning through release-please."
       ]
     },
     {
-      name: "Bilingual resume — roneyrogerio.dev",
+      name: "Multilingual CV — roneyrogerio.dev",
       context: "Personal project",
       repository: "https://github.com/roneyrogerio/curriculum",
       url: "https://roneyrogerio.dev",
@@ -297,7 +311,7 @@ export const enUs: CV = {
       highlights: [
         "Résumé tailoring to a job posting with an LLM (OpenAI API with Structured Outputs): the model receives identified facts and returns only selection, order and wording; employer, dates and links come from the source.",
         "Automatic verification of every rewritten sentence against its source, rejecting any technology or number the fact does not state.",
-        "Bilingual static site with a reading version and an A4 print version, plus PDF and DOCX exporters validated against an ATS parsing simulator.",
+        "Multilingual static site with a reading version and an A4 print version, plus PDF and DOCX exporters validated against an ATS parsing simulator.",
         "Automated deployment through GitHub Actions on every release, with versioning and changelog by release-please and a multi-architecture image (`linux/amd64` and `linux/arm64`) published to GitHub Container Registry.",
         "Runs as a Knative Service on Kubernetes (Oracle Kubernetes Engine), with a dedicated namespace and custom domain mapping."
       ]
@@ -579,18 +593,18 @@ export const enUs: CV = {
     print: "Print version",
     printAction: "Print or save as PDF",
     tailor: "Tailor to a job",
-    backToSite: "Back to resume",
+    backToSite: "Back to CV",
     repository: "Repository",
     liveSite: "Live at",
     present: "present",
     languageSwitch: "Language selector",
-    languageName: "EN-US",
-    languageLabel: "English (US)",
-    gateNote: "Full resume in American English",
+    languageName: "EN-GB",
+    languageLabel: "English (UK)",
+    gateNote: "Full CV in British English",
     gateSuggested: "suggested",
     skipToContent: "Skip to content",
     skillLevel: "Level",
-    printHint: "Single-column A4 layout, optimized for ATS parsing.",
+    printHint: "Single-column A4 layout, optimised for ATS parsing.",
     themeLabel: "Theme",
     themeLight: "Light",
     themeDark: "Dark",

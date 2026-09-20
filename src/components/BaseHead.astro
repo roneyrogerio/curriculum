@@ -1,5 +1,6 @@
 ---
 import { jsonForScript } from "../lib/markup";
+import { allLocales, cvByLocale } from "../data";
 import { siteUrl } from "../data/site";
 import type { CV } from "../data/types";
 
@@ -17,9 +18,16 @@ const { cv, path, noindex = false, canonical, alternates: withAlternates = true 
 const canonicalUrl = canonical ?? new URL(path, siteUrl).href;
 const ogImage = new URL("/og.png", siteUrl).href;
 
+/*
+ * Built from the locales that exist rather than listed here: a written list
+ * goes stale the moment a language is added, and a missing alternate is the
+ * kind of thing nobody notices, because the page still renders.
+ */
 const alternates = [
-  { hreflang: "pt-BR", href: new URL("/pt-br/", siteUrl).href },
-  { hreflang: "en-US", href: new URL("/en-us/", siteUrl).href },
+  ...allLocales.map((code) => ({
+    hreflang: cvByLocale[code].hreflang,
+    href: new URL(`/${code}/`, siteUrl).href
+  })),
   { hreflang: "x-default", href: `${siteUrl}/` }
 ];
 

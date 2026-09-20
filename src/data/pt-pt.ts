@@ -1,10 +1,25 @@
 import { contact } from "./site";
 import type { CV } from "./types";
 
-export const ptBr: CV = {
-  locale: "pt-br",
-  lang: "pt-BR",
-  hreflang: "pt-BR",
+/*
+ * European Portuguese, which is not the Brazilian file with a flag changed.
+ *
+ * The two share a language and not a vocabulary. A team is an "equipa", a
+ * file a "ficheiro", a user an "utilizador", a container a "contentor", and
+ * seniority is spelled with an acute rather than a circumflex. A Portuguese
+ * recruiter reads the Brazilian spelling as foreign the way an English one
+ * reads "organization" — understood, and visibly from somewhere else.
+ *
+ * Kept as its own file rather than generated from the other, because the
+ * differences are editorial and not mechanical: "pleno" has no Portuguese
+ * equivalent and becomes "intermédio", "salvar em PDF" becomes "guardar", and
+ * a first pass by find-and-replace turned "containers" into a word that does
+ * not exist.
+ */
+export const ptPt: CV = {
+  locale: "pt-pt",
+  lang: "pt-PT",
+  hreflang: "pt-PT",
   name: "Roney de Oliveira",
   role: "Software Engineer",
   gender: "masculine",
@@ -23,10 +38,10 @@ export const ptBr: CV = {
   ],
   seoTitle: "Roney de Oliveira — Software Engineer Backend, Frontend e DevOps",
   seoDescription:
-    "Currículo de Roney de Oliveira, Software Engineer com 8 anos de experiência em Go, Node.js, React, microsserviços, AWS, GCP, Oracle Cloud, Kubernetes e Knative. Disponível para vagas remotas.",
+    "Currículo de Roney de Oliveira, Software Engineer com 8 anos de experiência em Go, Node.js, React, microsserviços, AWS, GCP, Oracle Cloud, Kubernetes e Knative. Disponível para funções remotas.",
   summary: [
     "Engenheiro de software com experiência em aplicações web, APIs e microsserviços em produção, atuando de ponta a ponta entre backend, frontend e práticas DevOps.",
-    "Trabalho principalmente com Go, PostgreSQL, Node.js e React, além de cloud (AWS, GCP e Oracle Cloud), containers e arquitetura orientada a serviços.",
+    "Trabalho principalmente com Go, PostgreSQL, Node.js e React, além de cloud (AWS, GCP e Oracle Cloud), contentores e arquitetura orientada a serviços.",
     "Foco em código simples, escalável e de fácil manutenção, com interesse contínuo em performance, concorrência e sistemas distribuídos."
   ],
   contact,
@@ -149,10 +164,10 @@ export const ptBr: CV = {
       ]
     },
     {
-      title: "Engenheiro de Software Sênior",
+      title: "Engenheiro de Software Sénior",
       company: "e-didatico",
       companyUrl: "https://edidatico.com",
-      employment: "Tempo integral",
+      employment: "Tempo inteiro",
       start: "jul/2024",
       end: "mai/2026",
       startDate: "2024-07-01",
@@ -165,10 +180,10 @@ export const ptBr: CV = {
       ]
     },
     {
-      title: "Engenheiro de Software Pleno",
+      title: "Engenheiro de Software Intermédio",
       company: "e-didatico",
       companyUrl: "https://edidatico.com",
-      employment: "Tempo integral",
+      employment: "Tempo inteiro",
       start: "jan/2022",
       end: "jul/2024",
       startDate: "2022-01-01",
@@ -184,7 +199,7 @@ export const ptBr: CV = {
       title: "Engenheiro de Software Júnior",
       company: "e-didatico",
       companyUrl: "https://edidatico.com",
-      employment: "Tempo integral",
+      employment: "Tempo inteiro",
       start: "jul/2021",
       end: "jan/2022",
       startDate: "2021-07-01",
@@ -199,7 +214,7 @@ export const ptBr: CV = {
       title: "Analista de Helpdesk",
       company: "e-didatico",
       companyUrl: "https://edidatico.com",
-      employment: "Autônomo",
+      employment: "Autónomo",
       start: "mar/2021",
       end: "jul/2021",
       startDate: "2021-03-01",
@@ -213,7 +228,7 @@ export const ptBr: CV = {
     {
       title: "Desenvolvedor Full Stack",
       company: "Early Denver",
-      employment: "Tempo integral",
+      employment: "Tempo inteiro",
       start: "dez/2018",
       end: "dez/2019",
       startDate: "2018-12-01",
@@ -228,7 +243,7 @@ export const ptBr: CV = {
     {
       title: "Desenvolvedor de Software Júnior",
       company: "StutzLab",
-      employment: "Tempo integral",
+      employment: "Tempo inteiro",
       start: "jan/2018",
       end: "nov/2018",
       startDate: "2018-01-01",
@@ -243,7 +258,7 @@ export const ptBr: CV = {
     {
       title: "Desenvolvedor Web",
       company: "Projetos próprios",
-      employment: "Autônomo",
+      employment: "Autónomo",
       start: "nov/2010",
       end: "dez/2017",
       startDate: "2010-11-01",
@@ -271,16 +286,16 @@ export const ptBr: CV = {
         "Knative"
       ],
       highlights: [
-        "Servidor autoritativo em Go: toda a física de voo e o duelo entre linhas rodam no servidor, e o navegador apenas desenha e envia os controles, o que remove a superfície de trapaça no cliente.",
+        "Servidor autoritativo em Go: toda a física de voo e o duelo entre linhas correm no servidor, e o navegador apenas desenha e envia os controlos, o que remove a superfície de batota no cliente.",
         "Protocolo binário próprio sobre WebSocket, little endian, com frame de referência gravado pelo Go e decodificado pelo teste do cliente em TypeScript: mudar um lado sem o outro quebra a build.",
         "Área de interesse que trata cada jogador como um segmento de reta, da mão até a pipa, em grade espacial de 48 m com raio de 120 m e histerese — 12 µs por jogador, sem alocação.",
-        "Otimização guiada por perfil: varredura ordenada no lugar da comparação de todos os pares (28 ms para ~1 ms por tick) e quickselect no lugar de ordenação na seleção de pipas por envio (16% para 2,4% da CPU do tick).",
-        "Teste de carga próprio com 5.000 WebSockets simultâneos, sem falha de conexão nem expulsão; em produção a sala roda com 140 voadores a 15 quadros por segundo, limite definido pela banda do balanceador de 10 Mbps, e não pela CPU.",
+        "Otimização guiada por perfil: varrimento ordenada no lugar da comparação de todos os pares (28 ms para ~1 ms por tick) e quickselect no lugar de ordenação na seleção de pipas por envio (16% para 2,4% da CPU do tick).",
+        "Teste de carga próprio com 5.000 WebSockets simultâneos, sem falha de conexão nem expulsão; em produção a sala roda com 140 voadores a 15 fotogramas por segundo, limite definido pela banda do balanceador de 10 Mbps, e não pela CPU.",
         "Produção em Knative sobre Kubernetes, com dois serviços e dois domínios, imagens no GHCR e versionamento automatizado por release-please."
       ]
     },
     {
-      name: "Currículo bilíngue — roneyrogerio.dev",
+      name: "Currículo multilingue — roneyrogerio.dev",
       context: "Projeto pessoal",
       repository: "https://github.com/roneyrogerio/curriculum",
       url: "https://roneyrogerio.dev",
@@ -297,21 +312,21 @@ export const ptBr: CV = {
       highlights: [
         "Adaptação do currículo a uma vaga por LLM (API da OpenAI com Structured Outputs): o modelo recebe fatos identificados e devolve só seleção, ordem e redação; empregador, datas e links vêm da fonte.",
         "Verificação automática de cada frase reescrita contra sua origem, recusando tecnologia ou número que o fato não afirme.",
-        "Site estático bilíngue com versão de leitura e versão de impressão A4, mais exportadores de PDF e DOCX validados contra um simulador de parsing de ATS.",
+        "Site estático multilingue com versão de leitura e versão de impressão A4, mais exportadores de PDF e DOCX validados contra um simulador de parsing de ATS.",
         "Deploy automatizado por GitHub Actions a cada release, com versionamento e changelog por release-please e imagem multi-arquitetura (`linux/amd64` e `linux/arm64`) no GitHub Container Registry.",
         "Execução como Knative Service sobre Kubernetes (Oracle Kubernetes Engine), com namespace dedicado e domínio customizado."
       ]
     },
     {
       name: "Receitex — receitex.com.br",
-      context: "Projeto pessoal · sem manutenção, ainda no ar",
+      context: "Projeto pessoal · sem manutenção, ainda disponível",
       url: "https://receitex.com.br",
       stack: ["WordPress", "PHP", "React", "API da OpenAI", "MySQL", "Docker", "Kubernetes", "Knative"],
       highlights: [
         "Site de receitas com plugin próprio, o CulinAI: um painel em React dentro do admin do WordPress que gera a receita inteira — título, ingredientes com frações, modo de preparo, categorias e tags — e a publica como post.",
         "Texto e foto do prato gerados por IA, com a imagem enviada à biblioteca de mídia por rotas REST próprias do plugin.",
-        "Empacotado em container a partir da imagem oficial do WordPress, rodando como Knative Service sobre Kubernetes, com MySQL, domínio próprio e TLS.",
-        "Não é mais mantido, e segue no ar de propósito: é o registro de um site inteiro escrito por IA quando isso ainda era novidade. As imagens são da primeira geração dos modelos — reconhecíveis como o prato certo, e visivelmente aquém do que se produz hoje."
+        "Empacotado em contentor a partir da imagem oficial do WordPress, a correr como Knative Service sobre Kubernetes, com MySQL, domínio próprio e TLS.",
+        "Não é mais mantido, e continua disponível de propósito: é o registro de um site inteiro escrito por IA quando isso ainda era novidade. As imagens são da primeira geração dos modelos — reconhecíveis como o prato certo, e visivelmente aquém do que se produz hoje."
       ]
     },
     {
@@ -341,7 +356,7 @@ export const ptBr: CV = {
         "API Gateway"
       ],
       highlights: [
-        "API REST em Go com Gin e persistência em SQLite, para cadastro de clientes e processamento de patrimônio investido.",
+        "API REST em Go com Gin e persistência em SQLite, para registo de clientes e processamento de patrimônio investido.",
         "Integração GraphQL com o Pipefy e recebimento de webhooks com controle de idempotência: o mesmo evento entregue duas vezes não é processado duas vezes.",
         "Rastreamento distribuído com OpenTelemetry e Jaeger, e ambiente local completo em Docker Compose — mock GraphQL, coletor e API com recarga automática — subindo com um comando.",
         "O mesmo roteador serve HTTP local e AWS Lambda por proxy integration do API Gateway, com testes automatizados cobrindo as rotas."
@@ -364,7 +379,7 @@ export const ptBr: CV = {
       stack: ["C"],
       highlights: [
         "Biblioteca em C pura para ler, criar, alterar pixel a pixel e gravar imagens BMP de 24 e 32 bits por pixel.",
-        "Trabalha direto sobre o formato do arquivo e a ordem de bytes little endian, sem dependência externa."
+        "Trabalha direto sobre o formato do ficheiro e a ordem de bytes little endian, sem dependência externa."
       ]
     },
     {
@@ -382,7 +397,7 @@ export const ptBr: CV = {
       repository: "https://github.com/roneyrogerio/ft_services",
       stack: ["Administração de sistemas", "Redes", "Containers"],
       highlights: [
-        "Projeto de administração de sistemas e redes: provisionamento e orquestração de serviços em containers."
+        "Projeto de administração de sistemas e redes: provisionamento e orquestração de serviços em contentores."
       ]
     },
     {
@@ -401,7 +416,7 @@ export const ptBr: CV = {
       stack: ["C"],
       highlights: [
         "Reimplementação das funções da biblioteca padrão C — memória, strings, conversões e saída por descritor —, escritas do zero para entender o que cada uma custa.",
-        "Inclui uma lista encadeada própria com criação, inserção nas duas pontas, iteração, mapeamento e liberação."
+        "Inclui uma lista ligada própria com criação, inserção nas duas pontas, iteração, mapeamento e liberação."
       ]
     },
     {
@@ -419,8 +434,8 @@ export const ptBr: CV = {
       repository: "https://github.com/roneyrogerio/get_next_line",
       stack: ["C", "Chamadas de sistema POSIX"],
       highlights: [
-        "Função que lê um arquivo linha a linha a partir de um descritor, usando apenas `read`, `malloc` e `free`, com o buffer definido em tempo de compilação.",
-        "A segunda versão corrigiu o vazamento que a primeira deixava quando o arquivo não era lido até o fim — o estado pendente ficava alocado sem dono."
+        "Função que lê um ficheiro linha a linha a partir de um descritor, usando apenas `read`, `malloc` e `free`, com o buffer definido em tempo de compilação.",
+        "A segunda versão corrigiu o fuga que a primeira deixava quando o ficheiro não era lido até o fim — o estado pendente ficava alocado sem dono."
       ]
     },
     {
@@ -566,26 +581,26 @@ export const ptBr: CV = {
     skills: "Competências técnicas",
     experience: "Experiência profissional",
     projects: "Projetos",
-    education: "Formação acadêmica",
+    education: "Formação académica",
     certifications: "Certificações",
     certificate: "certificado",
     diploma: "diploma",
-    courses: "Cursos complementares",
+    courses: "Formação complementar",
     languages: "Idiomas",
     links: "Contato",
     keywords: "Competências adicionais",
-    targetRole: "Cargo-alvo",
+    targetRole: "Cargo pretendido",
     print: "Versão para impressão",
-    printAction: "Imprimir ou salvar em PDF",
+    printAction: "Imprimir ou guardar em PDF",
     tailor: "Adaptar a uma vaga",
     backToSite: "Voltar ao currículo",
     repository: "Repositório",
-    liveSite: "No ar em",
+    liveSite: "Disponível em",
     present: "atual",
     languageSwitch: "Seletor de idioma",
-    languageName: "PT-BR",
-    languageLabel: "Português (Brasil)",
-    gateNote: "Currículo completo em português do Brasil",
+    languageName: "PT-PT",
+    languageLabel: "Português (Portugal)",
+    gateNote: "Currículo completo em português europeu",
     gateSuggested: "sugerido",
     skipToContent: "Ir para o conteúdo",
     skillLevel: "Nível",

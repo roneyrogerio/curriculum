@@ -1,4 +1,4 @@
-export type Locale = "pt-br" | "en-us";
+export type Locale = "pt-br" | "pt-pt" | "en-us" | "en-gb" | "es" | "fr";
 
 /**
  * One thing with more than one name. "Go" and "Golang" are the same skill, and
@@ -113,10 +113,19 @@ export interface Labels {
   liveSite: string;
   present: string;
   languageSwitch: string;
+  /** The two letters this locale is offered under in the switcher. */
+  languageName: string;
+  /** The language's own name, for the gate: "Português", "English", "Español". */
+  languageLabel: string;
+  /** One line under it on the gate, in that language. */
+  gateNote: string;
+  /** Marks the option the browser's own language points at, in that language. */
+  gateSuggested: string;
+  /** The skip link, which is the first thing a screen reader reaches. */
+  skipToContent: string;
   skillLevel: string;
   printHint: string;
   themeLabel: string;
-  themeAuto: string;
   themeLight: string;
   themeDark: string;
 }
