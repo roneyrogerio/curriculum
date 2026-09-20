@@ -7,6 +7,7 @@ export const enUs: CV = {
   hreflang: "en-US",
   name: "Roney de Oliveira",
   role: "Software Engineer",
+  gender: "masculine",
   disciplines: [
     { name: "Backend" },
     { name: "Frontend" },

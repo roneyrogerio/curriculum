@@ -142,6 +142,17 @@ export interface CV {
   name: string;
   role: string;
   /**
+   * The grammatical gender the candidate's own titles are written in.
+   *
+   * Portuguese job advertisements are addressed to everyone who might apply
+   * and are written in both genders — "Desenvolvedor(a)", "Pessoa
+   * Desenvolvedora". A résumé is written by one person, so the advertised
+   * title has to be put back into a single gender, and that is a fact about
+   * the candidate rather than a default worth hard-coding in a prompt. English
+   * job titles carry no gender, so this has no effect there.
+   */
+  gender: "masculine" | "feminine";
+  /**
    * The headline, kept as two lists so tailoring can lead with whichever
    * discipline and technology the posting is about. It sits at the very top of
    * the document, which is the highest-weighted place a keyword can be.

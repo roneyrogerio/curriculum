@@ -16,6 +16,7 @@ import type { CV } from "../../data/types";
 import { labelOfTerm as labelOf } from "../headline";
 import type { ResumePlan } from "./plan";
 import type { Block, MovableKey, ResumeDocument, Section, SectionKey } from "./document";
+import { titleForCandidate } from "./title";
 import { ALWAYS_PRINTED, MOVABLE, withoutEmptySections } from "./document";
 
 /** `pos.3` and `grp.1.sk.4` carry their index; this reads it back. */
@@ -100,6 +101,8 @@ export function composeDocument(cv: CV, plan: ResumePlan): ResumeDocument {
 
   const summary = plan.summary.map((fact) => fact.text);
 
+  const targetRole = titleForCandidate(plan.targetRole) || cv.role;
+
   const skills: Block = {
     kind: "definitions",
     items: plan.skillGroups
@@ -127,9 +130,11 @@ export function composeDocument(cv: CV, plan: ResumePlan): ResumeDocument {
     locale: cv.locale,
     lang: cv.lang,
     // The advertised title, which the candidate consents to on the panel, is
-    // the one string from the posting that reaches the sheet.
-    head: headOf(cv, plan.targetRole || cv.role, headline.length ? headline : [cv.role]),
-    meta: metaOf(cv, plan.targetRole || cv.role),
+    // the one string from the posting that reaches the sheet — written for the
+    // candidate rather than for every applicant, so a posting for a
+    // "Desenvolvedor(a)" heads this sheet as "Desenvolvedor".
+    head: headOf(cv, targetRole, headline.length ? headline : [cv.role]),
+    meta: metaOf(cv, targetRole),
     // The order the plan asked for, not the order this file happens to build
     // them in. That is the whole difference between a layout and a decision.
     sections: order(plan.sectionOrder, {
