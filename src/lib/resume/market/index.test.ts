@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { OpenAiError } from "../client";
-import { parseMarketResponse, searchMarketSalary, SEARCH_MODEL } from "./index";
+import { MAX_SEARCHES, parseMarketResponse, searchMarketSalary, SEARCH_MODEL } from "./index";
 import type { MarketObservation, MarketQuery } from "./types";
 
 /** What the model answers with, before anything here has touched it. */
@@ -50,7 +50,7 @@ function observation(overrides: Partial<MarketObservation> = {}): MarketObservat
 function payload(found: Record<string, unknown>, extra: Record<string, unknown> = {}) {
   return {
     output: [
-      { type: "web_search_call", action: { sources: [] } },
+      { type: "web_search_call", status: "completed", action: { sources: [] } },
       {
         type: "message",
         content: [{ type: "output_text", text: JSON.stringify(found), annotations: [] }]
@@ -121,6 +121,7 @@ describe("reading the salary lookup's answer", () => {
     recorded.output = [
       {
         type: "web_search_call",
+        status: "completed",
         action: { sources: [{ title: "Glassdoor", url: "https://glassdoor.com.br/a" }] }
       },
       {
@@ -199,9 +200,10 @@ describe("the request the lookup sends", () => {
     // Copying figures off a page is more work than "low" does well, and the
     // observations need somewhere to fit.
     expect(body.reasoning).toEqual({ effort: "medium" });
-    // There is no parameter that caps searches; sending one that the API
-    // ignores reads like a guarantee this code does not have.
-    expect(body).not.toHaveProperty("max_tool_calls");
+    // The ceiling on the bill. Measured against the live API: a cap of one
+    // returns one completed search, a cap of two returns two, and the attempt
+    // that hits the ceiling is left in the output as `searching`.
+    expect(body.max_tool_calls).toBe(MAX_SEARCHES);
     // The pages consulted are not returned unless they are asked for, and a
     // band nobody can trace back to a page is a guess with extra steps.
     expect(body.include).toContain("web_search_call.action.sources");

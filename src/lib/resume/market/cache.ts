@@ -25,9 +25,18 @@ const entries = new Map<string, { at: number; value: MarketSalary }>();
  * The language is part of the key: the prose of the answer is written in it,
  * so the same posting read in French and in Spanish are two different answers
  * and one must not be served for the other.
+ *
+ * The posting is folded first, because the key is exact and a person pasting
+ * is not. The same advertisement arrives with a blank line more, a trailing
+ * space, a line wrapped differently — and every one of those was a miss that
+ * bought the same two searches again. Whitespace is all that is folded:
+ * anything that changes a word changes the job, and that is a different
+ * lookup.
  */
+const fold = (posting: string) => posting.replace(/\s+/g, " ").trim();
+
 const keyOf = (query: MarketQuery) =>
-  createHash("sha256").update(`${query.language}\n${query.cacheKey}`).digest("hex");
+  createHash("sha256").update(`${query.language}\n${fold(query.cacheKey)}`).digest("hex");
 
 export function cached(query: MarketQuery): MarketSalary | null {
   const hit = entries.get(keyOf(query));

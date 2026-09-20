@@ -103,7 +103,7 @@ function stubbedFetch() {
     .mockResolvedValueOnce(reply(triage, TRIAGE))
     .mockResolvedValueOnce(reply(plan, TAILOR))
     .mockResolvedValueOnce(
-      reply(market, MARKET, [{ type: "web_search_call", action: { sources: [] } }])
+      reply(market, MARKET, [{ type: "web_search_call", status: "completed", action: { sources: [] } }])
     );
 }
 

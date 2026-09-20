@@ -28,6 +28,16 @@ describe("the week-long memo on a lookup", () => {
     expect(cached(query("a"))?.median).toBe(15_000);
   });
 
+  it("serves the same posting pasted with different spacing", () => {
+    remember(query("Backend sênior\n\nGo,  Brasil"), band(15_000));
+    expect(cached(query("Backend sênior\nGo, Brasil "))?.median).toBe(15_000);
+  });
+
+  it("treats a changed word as another job, because it is one", () => {
+    remember(query("Backend sênior Go"), band(15_000));
+    expect(cached(query("Backend pleno Go"))).toBeNull();
+  });
+
   it("keeps one posting's two languages apart, because the prose differs", () => {
     remember(query("a", "Français"), band(15_000));
     expect(cached(query("a", "Español"))).toBeNull();

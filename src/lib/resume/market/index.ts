@@ -44,9 +44,12 @@ export const SEARCH_CALL_USD = 0.01;
 
 /**
  * How many searches one lookup should make: one for the market, one for the
- * employer. It cannot be enforced on the request — the API has no such
- * parameter — so it is enforced by writing both searches out in the message
- * and leaving the model nothing to improvise. See `inputFor`.
+ * employer.
+ *
+ * Enforced twice over, because the two do different jobs. `max_tool_calls` on
+ * the request is the hard ceiling and the one that protects the bill; writing
+ * both searches out in the message is what decides *which* two are made, and
+ * therefore what makes two readings of the same posting agree. See `inputFor`.
  */
 export const MAX_SEARCHES = 2;
 
@@ -165,12 +168,11 @@ export async function searchMarketSalary(
        * stop moving.
        */
       /*
-       * Aimed at one market rather than at the web. There is no parameter that
-       * caps how many searches a lookup makes — the documentation says so, and
-       * three measured runs confirmed it by searching three times each while
-       * being told twice not to. So the fee is controlled by giving the model
-       * exactly the searches to run, and the variance by deciding which pages
-       * those searches can reach. See `sources.ts`.
+       * Aimed at one market rather than at the web, which is what decides the
+       * variance: the same posting reaches the same pages twice. How many
+       * searches are made is capped separately, by `max_tool_calls` below —
+       * this comment used to say no such parameter existed, and it does.
+       * See `sources.ts`.
        */
       tools: [searchToolFor(market)],
       /*
@@ -182,6 +184,19 @@ export async function searchMarketSalary(
        * rather than the subset the prose happened to mention.
        */
       include: ["web_search_call.action.sources"],
+      /*
+       * The cap, at last enforced rather than asked for.
+       *
+       * The searches are what this lookup costs: at a cent each they were 77%
+       * of a generation's bill, and the pages they retrieve are billed again
+       * as input tokens. The instructions have always said "two, no more", and
+       * three measured runs answered with three and four.
+       *
+       * `max_tool_calls` is the parameter that was missing when this was
+       * written. It counts every built-in tool call in the response, and this
+       * request carries one tool, so it counts searches.
+       */
+      max_tool_calls: MAX_SEARCHES,
       text: { format: { type: "json_schema", name: "market_salary", strict: true, schema: SCHEMA } },
       // Copying figures off a page and reconciling three of them is more work
       // than "low" does well, and the thinking bills against output, which is
@@ -278,7 +293,20 @@ export function parseMarketResponse(payload: any): MarketSalary {
       inputTokens: usage.input_tokens ?? 0,
       cachedTokens: usage.input_tokens_details?.cached_tokens ?? 0,
       outputTokens: usage.output_tokens ?? 0,
-      searches: output.filter((item: any) => typeof item?.type === "string" && item.type.includes("search")).length
+      /*
+       * Only the searches that finished, because only those are billed.
+       *
+       * With `max_tool_calls` set, the answer carries one more search item
+       * than it was allowed: the attempt that ran into the ceiling stays in
+       * the output as `searching`, never completing — which is the API doing
+       * what it documents, ignoring the call. Counted as a search, it added a
+       * cent to the figure on screen for work nobody did. Measured: a cap of
+       * one returns two items, a cap of two returns three.
+       */
+      searches: output.filter(
+        (item: any) =>
+          typeof item?.type === "string" && item.type.includes("search") && item.status === "completed"
+      ).length
     }
   };
 }
