@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/roneyrogerio/curriculum/compare/v0.8.0...v0.8.1) (2026-09-20)
+
+
+### Correções
+
+* escrever a folha inteira num só idioma ([feab56a](https://github.com/roneyrogerio/curriculum/commit/feab56a58771433cf3d1a99cb19c3dcc139b3768))
+
 ## [0.8.0](https://github.com/roneyrogerio/curriculum/compare/v0.7.1...v0.8.0) (2026-09-20)
 
 
