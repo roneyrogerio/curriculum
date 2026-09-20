@@ -164,7 +164,7 @@ export async function tailorResume(
       instructions: INSTRUCTIONS,
       input: [
         factsPrompt(cv, facts),
-        panelPrompt(advice.labels.languageLabel),
+        panelPrompt(advice.labels.languageLabel, cv.labels.languageLabel),
         postingPrompt(posting)
       ].join("\n\n"),
       format: responseFormat(facts)

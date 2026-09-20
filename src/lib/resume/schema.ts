@@ -257,7 +257,7 @@ export function planSchema(facts: CvFacts) {
           "One or two sentences on what was led with and what was cut. Shown to " +
             "the candidate on screen and never printed on the sheet, so it is " +
             "written in the panel language given in the input — which is often " +
-            "not the language of the posting."
+            "not the language of the résumé."
       }
     }
   };

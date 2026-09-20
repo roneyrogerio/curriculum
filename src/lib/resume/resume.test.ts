@@ -220,6 +220,35 @@ describe("verification of what the model wrote", () => {
     expect(repaired.positions[0].bullets[0].text).toBe(original);
   });
 
+  /*
+   * The bug this pins: an English posting produced an English sheet with one
+   * Portuguese bullet in the middle of it, because the rewrite was rolled back
+   * to a fact the model had translated away from. A revert puts back the fact
+   * as `src/data` holds it, so the fact and the sheet have to be in the same
+   * language — which they are exactly when the locale that picked the facts is
+   * the locale the sheet is written in.
+   */
+  it("reverts into the language of the résumé it is repairing", () => {
+    const english = cvByLocale["en-us"];
+    const englishFacts = factsOf(english);
+    const id = englishFacts.positions[0].highlights[0].id;
+    const source = factIndex(englishFacts).get(id)!;
+
+    const plan = fullPlan();
+    plan.positions = englishFacts.positions.map((entry) => ({
+      id: entry.id,
+      bullets: entry.highlights.map((fact) => ({ sourceId: fact.id, text: fact.text }))
+    }));
+    plan.positions[0].bullets[0] = { sourceId: id, text: "Backend services with Kafka." };
+
+    const { plan: repaired, violations } = verifyPlan(english, englishFacts, plan);
+
+    expect(violations.map((violation) => violation.detail)).toContain("Kafka");
+    expect(repaired.positions[0].bullets[0].text).toBe(source);
+    /* And the restored wording is the English one, not the Portuguese fact. */
+    expect(source).not.toBe(factIndex(facts).get(id));
+  });
+
   it("rejects a number nobody measured", () => {
     const plan = fullPlan();
     plan.positions[0].bullets[0] = { sourceId, text: "Reduzi a latência em 40% no backend." };

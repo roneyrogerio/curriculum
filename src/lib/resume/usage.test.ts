@@ -38,7 +38,7 @@ function reply(payload: unknown, usage: { input: number; cached: number; output:
 }
 
 const triage = {
-  language: "pt-br",
+  bodyLanguage: "pt",
   country: "Brasil",
   company: "Frete.com",
   advertisedLevel: "sênior",

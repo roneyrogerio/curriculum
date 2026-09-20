@@ -89,8 +89,16 @@ never introduced.
   in both directions: a specific, demonstrated match earns the top, a thin one
   does not, and an ask above the band ends a screening rather than opening a
   negotiation. None of this is printed; it is for the candidate alone.
-- Write in the language of the posting. If the posting is in English, every
-  rewritten sentence is in English, even though the facts may be in Portuguese.
+- Write every word of the sheet in the language named as "Language of the
+  sheet" above, which is the language the facts are already written in. That
+  language was chosen from the posting before you were called. Do not translate
+  the facts, in either direction, and do not drift toward the language of the
+  panel: they are different questions and the answer to this one is fixed. Two
+  reasons, and the second is the one that bites. A résumé is read by whoever
+  wrote the advertisement, so it is written in their language; and a rewrite
+  that fails verification is replaced by its source fact word for word, in the
+  language of the facts — so one translated sentence comes back untranslated
+  and lands in the middle of a document written in another language.
 - Write in the candidate's grammatical gender, given above. A posting is
   addressed to everyone who might apply, so it names the job in both genders at
   once — "Desenvolvedor(a)", "Pessoa Desenvolvedora", "Analista (m/f)". A
@@ -111,6 +119,11 @@ export function factsPrompt(cv: CV, facts: CvFacts): string {
 
   lines.push(
     `# Candidate: ${cv.name}`,
+    // Named rather than left to be inferred from the facts below. Inferred, it
+    // lost to the panel language sitting further down the same prompt: an
+    // English sheet came back with a summary translated into Portuguese,
+    // because that was the language the candidate was reading the screen in.
+    `Language of the sheet: ${cv.labels.languageLabel}`,
     `Current title: ${cv.role}`,
     // One person's résumé, in one gender. A posting is addressed to everyone
     // and is written in both; see the target role in `schema.ts`.
@@ -179,16 +192,19 @@ export function factsPrompt(cv: CV, facts: CvFacts): string {
  * Left implicit, the model wrote both in the posting's language, so a French
  * reader adapting an English posting was told in English what had been cut.
  */
-export function panelPrompt(language: string): string {
+export function panelPrompt(language: string, sheetLanguage: string): string {
   return [
     "## The language of the panel",
     "",
     `The candidate is reading the screen in ${language}.`,
     "",
     `Write "posting" and "rationale" in ${language}: they are shown to the`,
-    "candidate and never printed on the sheet. Everything that goes on the",
-    "sheet itself stays in the language of the posting, as stated above.",
-    "The two are frequently different, and that is intended."
+    "candidate and never printed on the sheet.",
+    "",
+    `Everything that goes on the sheet stays in ${sheetLanguage}: every`,
+    "rewritten bullet, the summary, the target role. The two languages are",
+    "frequently different, and that is intended — writing the sheet in the",
+    "language of the panel is the mistake this paragraph exists to prevent."
   ].join("\n");
 }
 
