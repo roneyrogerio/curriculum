@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.2](https://github.com/roneyrogerio/curriculum/compare/v0.8.1...v0.8.2) (2026-09-20)
+
+
+### Documentação
+
+* dizer no README que o site fala seis idiomas ([0afbb16](https://github.com/roneyrogerio/curriculum/commit/0afbb16391a621337e968724e026a7abea4298cf))
+
 ## [0.8.1](https://github.com/roneyrogerio/curriculum/compare/v0.8.0...v0.8.1) (2026-09-20)
 
 
