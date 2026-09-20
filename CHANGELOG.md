@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/roneyrogerio/curriculum/compare/v0.6.0...v0.6.1) (2026-09-20)
+
+
+### Correções
+
+* alinhar os ícones da barra com as palavras ao lado ([f56723f](https://github.com/roneyrogerio/curriculum/commit/f56723fde486fedfaa53d3e45cd8362b20849f55))
+
 ## [0.6.0](https://github.com/roneyrogerio/curriculum/compare/v0.5.0...v0.6.0) (2026-09-20)
 
 
