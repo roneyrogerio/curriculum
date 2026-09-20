@@ -43,20 +43,20 @@ const path = `/${cv.locale}/`;
 
     <div class="toolbar">
       {/*
-        A barra atravessa a tela; o conteúdo dela, não.
-        Sem este invólucro as pílulas seguiam a borda da janela, e num monitor
-        largo iam parar longe do currículo, que para em 1180px. A moldura
-        continua de ponta a ponta — é o que a faz parecer uma barra — e o que
-        está dentro segue a mesma coluna do texto.
+        The bar spans across the entire viewport; its contents do not.
+        Without this wrapper, the pill items hugged the edge of the window,
+        drifting far from the résumé on ultrawide displays (which caps at 1180px).
+        The frame remains edge-to-edge — which is what gives it the appearance
+        of a toolbar — while the inner content aligns with the text column.
       */}
       <div class="toolbar__inner">
         {/*
-          Só o que não está repetido na página.
-          A barra trazia IMPRESSÃO, PDF e DOCX, e os três já são botões no
-          cabeçalho, a um rolar de distância. Com seis idiomas ela passou da
-          largura de um telemóvel e quebrou em duas linhas para mostrar
-          duplicatas. O que sobra é o que existe só aqui: onde se está, com a
-          volta para trocar de idioma, e o tema.
+          Only elements that are not repeated elsewhere on the page.
+          The toolbar previously showed PRINT, PDF, and DOCX, all three of which
+          already exist as buttons in the header just a scroll away. With six
+          languages, it exceeded mobile viewport widths and wrapped into two rows
+          solely to display duplicate links. What remains is unique to this bar:
+          current location with a return link to switch language, and the theme switch.
         */}
         <nav class="toolbar__group">
           <a class="toolbar__link" href="/" aria-label={labels.languageSwitch}>

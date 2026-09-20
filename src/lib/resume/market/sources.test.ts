@@ -2,21 +2,21 @@ import { describe, expect, it } from "vitest";
 import { KNOWN_MARKETS, marketsByKey, resolveMarket, searchToolFor } from "./sources";
 import { CURRENCIES } from "./types";
 
-describe("o mercado que o país nomeado aponta", () => {
+describe("the market pointed to by the named country", () => {
   /*
-   * Quem decide o país é o modelo, que leu o anúncio inteiro. Houve uma
-   * versão em que este módulo conferia a resposta dele contra o idioma do
-   * texto e a descartava quando discordavam — e uma vaga brasileira com
-   * "estamos" e "buscamos" no corpo bastava para ser chamada de espanhola.
-   * O que se testa aqui é a tradução de um nome de país em mercado, que é
-   * tudo o que sobrou de responsabilidade do código.
+   * The model decides the country after reading the entire posting. An earlier
+   * version checked its answer against the text language and discarded it when
+   * they disagreed — and a Brazilian posting with "estamos" and "buscamos" in
+   * the body was enough to be classified as Spanish. What is tested here is
+   * translating a country name into a market, which is all the code remains
+   * responsible for.
    */
-  it("traduz o país em moeda, fuso e fontes", () => {
+  it("translates the country into currency, timezone, and sources", () => {
     expect(resolveMarket("Brasil")).toMatchObject({ country: "Brasil", currency: "BRL" });
     expect(resolveMarket("Reino Unido")).toMatchObject({ country: "Reino Unido", currency: "GBP" });
   });
 
-  it("lê o país como o modelo houver escrito", () => {
+  it("reads the country however the model wrote it", () => {
     for (const written of ["Estados Unidos", "EUA", "United States", "  usa  ", "US"]) {
       expect(resolveMarket(written)?.country).toBe("Estados Unidos");
     }
@@ -25,17 +25,17 @@ describe("o mercado que o país nomeado aponta", () => {
     expect(resolveMarket("poland")?.country).toBe("Polônia");
   });
 
-  it("não transforma o Canadá nos Estados Unidos", () => {
-    // Um sênior custa 25 a 30% menos lá, e quem publica isso são os sites .ca.
+  it("does not turn Canada into the United States", () => {
+    // A senior engineer costs 25-30% less there, and .ca sites publish that data.
     const canada = resolveMarket("Canadá")!;
     expect(canada.currency).toBe("CAD");
     expect(canada.employers).toContain("glassdoor.ca");
     expect(canada.employers).not.toContain("glassdoor.com");
   });
 
-  it("devolve nada para um país sem lista de fontes própria", () => {
-    // A busca cai na web aberta: pior que uma lista, melhor que o mercado
-    // errado. Trocar Japão por um padrão precificaria a vaga em outro país.
+  it("returns null for a country without its own sources list", () => {
+    // The search falls back to the open web: worse than a targeted list, better
+    // than the wrong market. Substituting Japan with a default would price the job in another country.
     expect(resolveMarket("Japão")).toBeNull();
     expect(resolveMarket("Índia")).toBeNull();
     expect(resolveMarket("")).toBeNull();
@@ -64,19 +64,19 @@ describe("the search tool, aimed at one market", () => {
   });
 });
 
-describe("as chaves e os nomes, que não são a mesma coisa", () => {
-  it("usa chave normalizada: minúscula e sem acento", () => {
-    // A chave é o que `normalise` produz. Uma chave acentuada funcionaria
-    // pelo caminho do alias e quebraria em qualquer acesso direto.
+describe("keys and names, which are not the same thing", () => {
+  it("uses normalized keys: lowercase without accents", () => {
+    // The key is what `normalise` produces. An accented key would work
+    // through the alias path but break on direct access.
     for (const key of KNOWN_MARKETS) {
       expect(key).toBe(key.toLowerCase());
       expect(key.normalize("NFD")).toBe(key);
     }
   });
 
-  it("guarda o nome escrito de verdade para o que sai em texto", () => {
-    // O termo de busca e o prompt levam este nome; "polonia" e "mexico" ali
-    // se leem como erro de digitação.
+  it("preserves the properly written name for text output", () => {
+    // The search term and prompt carry this name; "polonia" and "mexico" there
+    // read like typos.
     expect(resolveMarket("poland")?.country).toBe("Polônia");
     expect(resolveMarket("mexico")?.country).toBe("México");
     expect(resolveMarket("netherlands")?.country).toBe("Países Baixos");

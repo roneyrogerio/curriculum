@@ -272,21 +272,21 @@ describe("the request the lookup sends", () => {
     expect(input).toContain("Não invente uma segunda.");
   });
 
-  it("diz que restringiu a busca às fontes daquele mercado", async () => {
+  it("reports that the search was restricted to that market's sources", async () => {
     const fetchImpl = ok();
     const found = await searchMarketSalary(query({ country: "Reino Unido" }), {
       apiKey: "k",
       fetch: fetchImpl as any
     });
 
-    // O mercado que a tela mostra vem da resposta do modelo; o que o código
-    // sabe, e ele não, é se a busca teve lista de fontes ou correu a web.
+    // The market displayed on screen comes from the model's response; what code
+    // knows, and the model does not, is whether the search had a targeted sources list or ran against the open web.
     expect(found.listedSources).toBe(true);
     const body = JSON.parse((fetchImpl.mock.calls[0] as any)[1].body);
     expect(body.tools[0].filters.allowed_domains).toContain("itjobswatch.co.uk");
   });
 
-  it("assume a web aberta para um país sem lista, e diz isso", async () => {
+  it("assumes the open web for an unlisted country and indicates so", async () => {
     const fetchImpl = ok();
     const found = await searchMarketSalary(query({ country: "Japão" }), {
       apiKey: "k",

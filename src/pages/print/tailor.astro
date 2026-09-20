@@ -30,7 +30,7 @@ import { MAX_POSTING, type tailorResume } from "../../lib/resume";
 import "../../styles/print.css";
 import "../../styles/tailor.css";
 
-/** As fontes da pesquisa: abrem em aba nova e não repassam relevância. */
+/** Research sources: open in a new tab without passing referrer relevance. */
 const away = (href: string) =>
   /^(mailto|tel):/i.test(href) ? {} : { target: "_blank", rel: "noopener noreferrer nofollow" };
 
@@ -69,15 +69,16 @@ if (Astro.request.method === "POST") {
  * nowhere: the sheet is built by composeDocument, which never sees this field.
  */
 const salary = result?.salary ?? null;
-/* Um rótulo só quando os dois níveis divergem: é a divergência que interessa. */
+/* Only show a label when the two levels diverge: the divergence is what matters. */
 const levelMismatch =
   !!salary && salary.advertisedLevel.trim().toLowerCase() !== salary.actualLevel.trim().toLowerCase();
 
 /*
- * O outro regime. No Brasil, um bruto CLT e um bruto PJ não são o mesmo
- * número: o primeiro carrega 13º, férias com um terço, FGTS e a parte
- * patronal. A tabela mostra o regime em que a faixa foi cotada, e esta conta
- * dá o equivalente — com o fator à vista, porque ele varia com o mercado.
+ * The alternate employment contract. In Brazil, gross CLT and gross PJ are
+ * not the same figure: CLT includes 13th salary, one-third holiday bonus, FGTS,
+ * and employer social contributions. The table shows the regime in which the
+ * band was quoted, and this calculation provides the equivalent figure — with
+ * the factor visible since it varies across markets.
  */
 const regime = salary?.market.bandRegime ?? "não se aplica";
 const pjFactor = salary?.market.pjOverClt ?? 1;
@@ -86,15 +87,15 @@ const otherRegime = regime === "CLT" ? "PJ" : "CLT";
 const toOther = (value: number) => (regime === "CLT" ? value * pjFactor : value / pjFactor);
 
 /*
- * O número na moeda em que ele foi encontrado, e nada além disso.
+ * The figure in the currency in which it was found, and nothing else.
  *
- * A conversão saiu daqui inteira: eram uma chamada de rede ao BCE por dia, um
- * cache, um teste de plausibilidade da cotação e duas colunas a mais na
- * tabela — tudo para exibir em dólar e em euro um salário que se negocia em
- * real. Na prática, uma vaga brasileira é cotada em real e a tabela mostra
- * real. A moeda continua vindo da busca em vez de ser chumbada porque este
- * painel também adapta anúncio em inglês: escrever "R$" sobre uma faixa
- * americana seria mais barato de programar e simplesmente falso.
+ * Currency conversion was completely removed: it involved a daily ECB network
+ * call, a cache, a rate plausibility check, and two extra columns in the table —
+ * all to display in USD and EUR a salary negotiated in BRL. In practice, a
+ * Brazilian job is quoted in BRL and the table shows BRL. The currency still
+ * comes from the search rather than being hardcoded because this panel also
+ * adapts English postings: writing "R$" over an American salary band would be
+ * cheaper to program but completely false.
  */
 const money = (value: number) =>
   new Intl.NumberFormat("pt-BR", {
@@ -103,7 +104,7 @@ const money = (value: number) =>
     maximumFractionDigits: 0
   }).format(value);
 
-/** O mercado brasileiro cota por mês; o ano são doze deles. */
+/** The Brazilian market quotes monthly; the year is twelve of them. */
 const perPeriod = (value: number, period: "month" | "year") => {
   const monthly = salary!.market.period === "year" ? value / 12 : value;
   return period === "year" ? monthly * 12 : monthly;
@@ -258,11 +259,11 @@ const cachedShare =
 
                   <p class="tailor__note tailor__note--money">
                     {/*
-                      O percentual só aparece quando é uma leitura, e não um
-                      0 ou um 100 — que é como o modelo mais barato do pipeline
-                      falha, e falhou duas vezes na mesma vaga. Mostrar "atende
-                      0%" ao lado de um pedido na mediana é contar duas coisas
-                      que não batem; o rótulo é o que foi de fato usado.
+                      The percentage only appears when it is a reading, not a
+                      0 or 100 — which is how the cheapest model in the pipeline
+                      fails, and failed twice on the same posting. Showing "matches
+                      0%" beside a median ask tells two conflicting stories;
+                      the label is what was actually used.
                     */}
                     <b>Pedir:</b>{" "}
                     {salary.fit > 0 && salary.fit < 100
@@ -273,9 +274,9 @@ const cachedShare =
                   <p class="tailor__note tailor__note--money">{salary.market.note}</p>
                   <p class="tailor__note tailor__note--money">
                     {/*
-                      O mercado é a decisão que mais move o número: errar o
-                      país erra a faixa por um múltiplo, e era a única escolha
-                      do cálculo que não aparecia na tela.
+                      Market selection is the decision that moves the figure most:
+                      getting the country wrong throws the band off by a multiple,
+                      and it was the only calculation choice not shown on screen.
                     */}
                     <b>Mercado:</b> {salary.market.country} · {salary.market.currency}
                     {!salary.market.listedSources && (
@@ -326,10 +327,10 @@ const cachedShare =
               )}
 
               {/*
-                Os números e o preço descrevem a mesma coisa: as três chamadas
-                de uma geração. Antes os tokens eram só os da adaptação ao lado
-                do preço das três, e a busca — que é onde a entrada explode,
-                porque as páginas abertas entram como tokens — não aparecia.
+                Token counts and price describe the same thing: all three calls
+                of a generation. Previously tokens reflected only the tailoring
+                call beside the combined price of all three, while the search —
+                where input explodes due to ingested pages — was omitted.
               */}
               <p class="tailor__note">
                 3 chamadas{result.usage.searches > 0 && `, ${result.usage.searches} buscas`} ·{" "}

@@ -204,7 +204,7 @@ export async function triagePosting(posting: string, options: ClientOptions): Pr
       Authorization: `Bearer ${options.apiKey}`
     },
     body: JSON.stringify({
-      model: TRIAGE_MODEL,
+      model: options.model ?? TRIAGE_MODEL,
       instructions: INSTRUCTIONS,
       input: ["<<<VAGA", posting.trim(), "VAGA>>>"].join("\n"),
       text: { format: { type: "json_schema", name: "triage", strict: true, schema: SCHEMA } },

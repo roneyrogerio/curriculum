@@ -17,7 +17,12 @@
  */
 import { ActionError, defineAction } from "astro:actions";
 import { z } from "astro/zod";
-import { OPENAI_API_KEY, OPENAI_MODEL } from "astro:env/server";
+import {
+  OPENAI_API_KEY,
+  OPENAI_TRIAGE_MODEL,
+  OPENAI_TAILOR_MODEL,
+  OPENAI_SALARY_MODEL
+} from "astro:env/server";
 import { InputError, MAX_POSTING, tailorResume } from "../lib/resume";
 import { OpenAiError, RefusalError } from "../lib/resume/client";
 
@@ -55,7 +60,15 @@ export const server = {
 
       try {
         return await tailorResume(
-          { posting, model: OPENAI_MODEL },
+          {
+            posting,
+            model: OPENAI_TAILOR_MODEL,
+            models: {
+              triage: OPENAI_TRIAGE_MODEL,
+              tailor: OPENAI_TAILOR_MODEL,
+              salary: OPENAI_SALARY_MODEL
+            }
+          },
           { apiKey: OPENAI_API_KEY, signal: AbortSignal.timeout(TIMEOUT_MS) }
         );
       } catch (error) {

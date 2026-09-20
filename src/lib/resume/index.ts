@@ -26,12 +26,21 @@ import { titleForCandidate } from "./title";
 import { triagePosting, TRIAGE_MODEL } from "./triage";
 import { verifyPlan, type Violation } from "./verify";
 
+export interface TailorModels {
+  triage?: string;
+  tailor?: string;
+  salary?: string;
+}
+
 export interface TailorRequest {
   /** The posting, title included: the title is the first line of any posting. */
   posting: string;
   /** Forced locale. Left out, the posting's own language decides. */
   locale?: Locale;
+  /** Model for tailoring the résumé. Backward-compatible alias for models.tailor. */
   model?: string;
+  /** Stage-specific model overrides. */
+  models?: TailorModels;
 }
 
 export interface SalaryAdvice {
@@ -66,13 +75,13 @@ export interface TailorResult {
   /** Empty on a clean answer. Non-empty means a rewrite was rolled back. */
   violations: Violation[];
   /**
-   * As três chamadas somadas, e não a do meio.
+   * All three calls combined, not just the middle one.
    *
-   * Os tokens mostrados eram só os da adaptação, ao lado de um preço que já
-   * somava as três — de modo que dividir um pelo outro dava um número que não
-   * existe, e a chamada que mais consome entrada, a da busca, que engole
-   * páginas inteiras, não aparecia em lugar nenhum. Ou os dois são o total,
-   * ou nenhum é.
+   * Tokens previously displayed were only for the tailoring step, alongside a
+   * price that already summed all three — dividing one by the other yielded a
+   * nonsensical figure, and the call that consumes the most input (the search,
+   * which ingests entire pages) did not appear anywhere. Either both represent
+   * the total, or neither does.
    */
   usage: Usage & { model: string; usd: number; searches: number };
 }
@@ -97,6 +106,10 @@ export async function tailorResume(
     throw new InputError(`The posting is longer than ${MAX_POSTING} characters.`);
   }
 
+  const triageModel = request.models?.triage ?? TRIAGE_MODEL;
+  const tailorModel = request.models?.tailor ?? request.model ?? options.model ?? DEFAULT_MODEL;
+  const salaryModel = request.models?.salary ?? SEARCH_MODEL;
+
   /*
    * First, where the job is and what language it speaks.
    *
@@ -108,7 +121,7 @@ export async function tailorResume(
    *
    * A tenth of a cent, against three to five for the whole generation.
    */
-  const triage = await triagePosting(posting, options);
+  const triage = await triagePosting(posting, { ...options, model: triageModel });
 
   const locale: Locale = request.locale ?? triage.language;
   const cv: CV = cvByLocale[locale];
@@ -120,7 +133,7 @@ export async function tailorResume(
       input: `${factsPrompt(cv, facts)}\n\n${postingPrompt(posting)}`,
       format: responseFormat(facts)
     },
-    { ...options, model: request.model ?? options.model ?? DEFAULT_MODEL }
+    { ...options, model: tailorModel }
   );
 
   const verified = verifyPlan(cv, facts, plan);
@@ -159,10 +172,10 @@ export async function tailorResume(
         // The advertisement, which is what is the same between two runs.
         cacheKey: posting
       },
-      { ...options, model: SEARCH_MODEL }
+      { ...options, model: salaryModel }
     );
     searchUsd =
-      costOf(market.usage, SEARCH_MODEL) + market.usage.searches * SEARCH_CALL_USD;
+      costOf(market.usage, salaryModel) + market.usage.searches * SEARCH_CALL_USD;
     searchUsage = market.usage;
     salary = {
       summary: assessment.summary,
@@ -177,7 +190,7 @@ export async function tailorResume(
     console.error("market salary lookup failed", error);
   }
 
-  /* As três chamadas numa linha só, porque é uma geração para quem paga. */
+  /* All three calls combined in a single figure: it is one generation to whoever pays. */
   const totalUsage = {
     inputTokens: triage.usage.inputTokens + usage.inputTokens + searchUsage.inputTokens,
     cachedTokens: triage.usage.cachedTokens + usage.cachedTokens + searchUsage.cachedTokens,
@@ -195,9 +208,9 @@ export async function tailorResume(
     // one generation from the perspective of whoever pays for it.
     usage: {
       ...totalUsage,
-      // O modelo que escreve o currículo; os outros dois estão no total.
+      // The model that writes the résumé; the other two are in the total bill.
       model,
-      usd: costOf(usage, model) + costOf(triage.usage, TRIAGE_MODEL) + searchUsd
+      usd: costOf(usage, model) + costOf(triage.usage, triageModel) + searchUsd
     }
   };
 }

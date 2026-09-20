@@ -4,22 +4,22 @@ import { factsOf } from "./facts";
 import { tailorResume } from "./index";
 
 /*
- * O que uma geração custa, verificado em vez de afirmado.
+ * What a generation costs, verified rather than assumed.
  *
- * São três chamadas — triagem, adaptação e salário — e por um tempo o painel
- * mostrou os tokens de uma delas ao lado do preço das três. O número não
- * fechava com a conta, e ninguém tinha como notar: 8.000 tokens e quatro
- * centavos são os dois plausíveis, só não são a mesma geração.
+ * There are three calls — triage, tailoring, and salary — and for a time the
+ * panel displayed the tokens of one beside the combined price of all three.
+ * The numbers did not add up, and nobody could tell: 8,000 tokens and four
+ * cents are both plausible, they just did not come from the same generation.
  *
- * Este teste substitui a rede por três respostas gravadas, com contagens
- * distintas e reconhecíveis, e refaz a aritmética à mão a partir da tabela de
- * preços. Se alguma chamada sair do total, a soma deixa de bater.
+ * This test replaces the network with three recorded responses having distinct,
+ * recognizable token counts, and recalculates the arithmetic by hand using the
+ * rate table. If any call is dropped from the total, the sum fails to match.
  */
 
 const cv = cvByLocale["pt-br"];
 const facts = factsOf(cv);
 
-/** Uma resposta da Responses API, com a contagem que este teste quer ver. */
+/** A response from the Responses API with the token counts this test expects. */
 function reply(payload: unknown, usage: { input: number; cached: number; output: number }, extra: unknown[] = []) {
   return new Response(
     JSON.stringify({
@@ -48,7 +48,7 @@ const triage = {
   declared: null
 };
 
-/** Um plano que mantém tudo e não reescreve nada: passa pela verificação. */
+/** A plan that preserves everything and rewrites nothing: passes verification. */
 const plan = {
   targetRole: "Desenvolvedor Backend Sênior",
   sectionOrder: ["skills", "experience", "projects", "education", "certifications", "languages"],
@@ -92,7 +92,7 @@ const market = {
   observations: []
 };
 
-/* Contagens distintas por chamada, para que uma omissão apareça na soma. */
+/* Distinct token counts per call, ensuring any omitted call shows up in the sum. */
 const TRIAGE = { input: 1_000, cached: 0, output: 100 };
 const TAILOR = { input: 8_000, cached: 2_000, output: 3_000 };
 const MARKET = { input: 27_000, cached: 0, output: 900 };
@@ -107,29 +107,31 @@ function stubbedFetch() {
     );
 }
 
-/** A tabela de preços do `client.ts`, por milhão de tokens. */
+/** The rate table from `client.ts`, per million tokens. */
 const RATE = {
   nano: { input: 0.05, output: 0.4 },
-  luna: { input: 0.2, output: 1.2 }
+  mini: { input: 0.25, output: 2.0 },
+  luna: { input: 0.2, output: 1.2 },
+  terra: { input: 2.0, output: 12.0 }
 };
 
 const priced = (usage: { input: number; cached: number; output: number }, rate: { input: number; output: number }) =>
   ((usage.input - usage.cached) * rate.input + usage.cached * (rate.input / 10) + usage.output * rate.output) / 1e6;
 
 /*
- * Uma vaga diferente por teste, de propósito.
+ * A different posting per test, by design.
  *
- * A busca é guardada por uma semana com o anúncio como chave, então repetir o
- * mesmo texto acerta o cache e zera o custo da terceira chamada — que é o
- * comportamento certo e faria este arquivo medir outra coisa. A primeira
- * versão daqui repetiu, e a conta veio a US$ 0,0016 em vez de US$ 0,0181.
+ * Salary searches are cached for one week keyed by the posting text, so reusing
+ * the same text hits the cache and zeroes the cost of the third call — which is
+ * correct behavior, but would measure the wrong thing here. The initial version
+ * did repeat it, and the bill came out to $0.0016 instead of $0.0181.
  */
 let posting = 0;
 const vaga = () =>
   `Vaga ${(posting += 1)}: pessoa desenvolvedora backend sênior em Go, remota, CLT, com Kubernetes.`;
 
-describe("o que uma geração custa", () => {
-  it("soma os tokens das três chamadas, e não os de uma", async () => {
+describe("what a generation costs", () => {
+  it("sums tokens across all three calls, not just one", async () => {
     const result = await tailorResume(
       { posting: vaga() },
       { apiKey: "k", fetch: stubbedFetch() as any }
@@ -139,11 +141,11 @@ describe("o que uma geração custa", () => {
     expect(result.usage.outputTokens).toBe(TRIAGE.output + TAILOR.output + MARKET.output);
     expect(result.usage.cachedTokens).toBe(TRIAGE.cached + TAILOR.cached + MARKET.cached);
 
-    // A busca é o item mais caro da conta, e é o que a linha precisa dizer.
+    // The search is the most expensive item on the bill, and the summary line must reflect it.
     expect(result.usage.searches).toBe(1);
   });
 
-  it("cobra as três chamadas e a taxa por busca", async () => {
+  it("charges for all three calls plus the search fee", async () => {
     const result = await tailorResume(
       { posting: vaga() },
       { apiKey: "k", fetch: stubbedFetch() as any }
@@ -153,17 +155,46 @@ describe("o que uma geração custa", () => {
       priced(TRIAGE, RATE.nano) + priced(TAILOR, RATE.nano) + priced(MARKET, RATE.luna) + 1 * 0.01;
 
     expect(result.usage.usd).toBeCloseTo(expected, 10);
-    // E a triagem, que é a barata, não some na soma por ser pequena.
+    // And triage, being the cheap call, does not get lost in the sum by being small.
     expect(result.usage.usd).toBeGreaterThan(priced(TAILOR, RATE.nano) + priced(MARKET, RATE.luna) + 0.01);
   });
 
-  it("escreve o currículo no idioma que a triagem escolheu", async () => {
+  it("writes the résumé in the language selected by triage", async () => {
     const result = await tailorResume(
       { posting: vaga() },
       { apiKey: "k", fetch: stubbedFetch() as any }
     );
     expect(result.locale).toBe("pt-br");
-    // E o cargo sai no gênero de quem assina, não no do anúncio.
+    // And the job title adopts the candidate's grammatical gender, not the advertisement's.
     expect(result.document.head.role).toBe("Desenvolvedor Backend Sênior");
+  });
+
+  it("honours model overrides across each of the three calls and prices accordingly", async () => {
+    const fetchImpl = stubbedFetch();
+    const result = await tailorResume(
+      {
+        posting: vaga(),
+        models: {
+          triage: "gpt-5.6-luna",
+          tailor: "gpt-5.6-terra",
+          salary: "gpt-5-mini"
+        }
+      },
+      { apiKey: "k", fetch: fetchImpl as any }
+    );
+
+    const calls = fetchImpl.mock.calls;
+    expect(JSON.parse((calls[0] as any)[1].body).model).toBe("gpt-5.6-luna");
+    expect(JSON.parse((calls[1] as any)[1].body).model).toBe("gpt-5.6-terra");
+    expect(JSON.parse((calls[2] as any)[1].body).model).toBe("gpt-5-mini");
+
+    const expected =
+      priced(TRIAGE, RATE.luna) +
+      priced(TAILOR, RATE.terra) +
+      priced(MARKET, RATE.mini) +
+      1 * 0.01;
+
+    expect(result.usage.usd).toBeCloseTo(expected, 10);
+    expect(result.usage.model).toBe("gpt-5.6-terra");
   });
 });

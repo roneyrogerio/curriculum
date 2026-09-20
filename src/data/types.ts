@@ -101,7 +101,7 @@ export interface Labels {
   targetRole: string;
   print: string;
   printAction: string;
-  /** Link para a página privada de adaptação, na barra de impressão. */
+  /** Link to the private tailoring page, on the print bar. */
   tailor: string;
   backToSite: string;
   repository: string;

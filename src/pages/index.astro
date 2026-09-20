@@ -38,10 +38,10 @@ const options = allLocales.map((locale) => {
 const { labels } = cvByLocale["pt-br"];
 
 /*
- * Os idiomas oferecidos, nos nomes deles, para o título e a descrição.
- * Escritos à mão, os dois anunciavam "PT-BR / EN-US / ES-ES" — uma lista
- * desatualizada citando um código que já não existe. Ninguém repara numa
- * descrição velha; ela só aparece no resultado de busca.
+ * The offered locales, under their localized names, for the page title and description.
+ * Hand-written, both used to advertise "PT-BR / EN-US / ES-ES" — a stale list
+ * referencing codes that no longer exist. Nobody notices an outdated meta
+ * description; it only appears in search results.
  */
 const offered = options.map((option) => option.label).join(", ");
 
@@ -101,10 +101,10 @@ const schema = {
   <body class="gate-body">
     <main class="gate">
       {/*
-        O seletor de tema mora aqui, na linha do título e dentro da mesma
-        coluna das opções: esta é a primeira página que alguém abre, e ela
-        tinha o script que restaura um tema salvo sem ter como escolher um.
-        Solto no canto da janela ele não se alinhava com nada.
+        The theme switch belongs here, aligned with the header line and within
+        the same column as the options: this is the landing page anyone opens,
+        and it ran the script that restored saved themes without providing a way
+        to choose one. Floating in the corner, it aligned with nothing.
       */}
       <div class="gate__top">
         <p class="eyebrow">Curriculum vitae</p>
@@ -121,10 +121,10 @@ const schema = {
               <span class="gate__label">{option.label}</span>
               <span class="gate__note">{option.note}</span>
               {/*
-                Presente nos seis, visível em um. Escondê-lo com `hidden`
-                tirava a linha do fluxo e o cartão sugerido ficava mais alto
-                que os outros — a sugestão mexia no desenho da página em vez
-                de só apontar. O CSS reserva o espaço e alterna a visibilidade.
+                Present in all six, visible in one. Hiding it with `hidden`
+                removed the line from document flow, making the suggested card taller
+                than the others — mutating layout instead of highlighting.
+                CSS reserves the space and toggles visibility.
               */}
               <span class="gate__suggested">{option.suggested}</span>
             </a>
@@ -133,13 +133,13 @@ const schema = {
       </ul>
 
       {/*
-        Sem atalho para PDF aqui.
-        Havia um, e ele apontava para /pt-br/print/ — escolhia o português por
-        quem ainda não escolheu idioma nenhum, que é a única coisa que esta
-        página faz. Apontá-lo para o idioma sugerido seria um link que muda
-        conforme o navegador de quem olha, e continuaria escolhendo. Os dois
-        formatos estão a um clique de dentro de qualquer uma das seis opções,
-        já no idioma certo. GitHub e LinkedIn ficam: não têm idioma.
+        No PDF shortcut here.
+        There used to be one pointing to /pt-br/print/ — picking Portuguese
+        for someone who had not yet chosen a language, which is the only purpose
+        of this page. Directing it to the suggested language would mean a link
+        that mutates depending on the viewer's browser, while still making assumptions.
+        Both formats are one click away inside each of the six options, already
+        in the matching language. GitHub and LinkedIn stay: they have no language.
       */}
       <p class="gate__foot">
         <a href="https://github.com/roneyrogerio" target="_blank" rel="noopener noreferrer nofollow">GitHub</a>

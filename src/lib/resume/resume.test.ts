@@ -65,7 +65,7 @@ describe("the layout the model may and may not choose", () => {
   });
 
   it("prints only the certificates and courses the plan chose", () => {
-    // A cada vaga, o que sobra tem de ser o que aquela vaga dá motivo para ler.
+    // For each job posting, what remains must be what that posting gives reason to read.
     const plan = fullPlan({ certificationIds: [facts.certifications[0].id], courseIds: [] });
     const document = composeDocument(cv, plan);
     const certs = document.sections.find((s) => s.key === "certifications");
@@ -75,9 +75,9 @@ describe("the layout the model may and may not choose", () => {
 
   it("keeps every degree when the plan names none", () => {
     /*
-     * Uma seleção vazia aqui mantém tudo, e não nada: um currículo sem seção
-     * de formação é pontuado para baixo, e um diploma não é o que deixa o
-     * documento longo.
+     * An empty selection here retains everything rather than nothing: a résumé
+     * without an education section gets scored down, and a degree is not what
+     * makes the document overly long.
      */
     const plan = fullPlan({ educationIds: [] });
     const education = composeDocument(cv, plan).sections.find((s) => s.key === "education");
@@ -142,10 +142,10 @@ describe("facts the model never gets to write", () => {
 
   it("never prints how the posting was read", () => {
     /*
-     * A leitura da vaga e o que ela paga são sobre a vaga, não sobre o
-     * candidato, e existem para a pessoa decidir se responde ao anúncio. Num
-     * documento enviado a um empregador seriam, na melhor das hipóteses,
-     * estranhos. A garantia é estrutural: composeDocument não lê o campo.
+     * The posting analysis and compensation advice pertain to the job, not
+     * the candidate, and exist so the applicant can decide whether to respond.
+     * In a document sent to an employer they would be, at best, bizarre. The
+     * guarantee is structural: composeDocument does not read this field.
      */
     const plan = fullPlan({
       posting: {

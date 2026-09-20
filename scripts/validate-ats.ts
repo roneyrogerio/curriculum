@@ -19,8 +19,8 @@ const root = resolve(import.meta.dirname, "..");
 const cvDir = join(root, "public", "cv");
 
 /*
- * Cada locale que existe, e não uma lista escrita aqui: um currículo novo que
- * ninguém valida é um currículo que só falha na frente de quem o recebeu.
+ * Every existing locale, not a hardcoded list here: an unvalidated new résumé
+ * is a résumé that only fails in front of the person who received it.
  */
 const locales = allLocales;
 
@@ -118,10 +118,10 @@ const patterns = {
   github: /github\.com\/[\w-]+/i,
   /** A date range a parser can turn into an employment period. */
   /*
-   * `\p{L}` e não `\w`: os meses abreviados em francês trazem acento —
-   * "août", "déc" —, e `\w` não casa com eles. A verificação passava a contar
-   * cinco períodos onde havia oito, e a falha apontava para o currículo em vez
-   * de apontar para esta linha.
+   * `\p{L}` rather than `\w`: abbreviated French months contain accents —
+   * "août", "déc" —, and `\w` does not match them. Verification ended up counting
+   * five periods where eight existed, and the failure pointed to the résumé instead
+   * of this line.
    */
   dateRange: /(\p{L}{3,}\/?\s?\d{4})\s*[–-]\s*(\p{L}{3,}\/?\s?\d{4})/gu
 };
@@ -141,12 +141,14 @@ async function extractPdf(path: string) {
     const page = await doc.getPage(i);
     const content = await page.getTextContent();
     let line = "";
-    const lines = [];
+    const lines: string[] = [];
     for (const item of content.items) {
-      line += item.str;
-      if (item.hasEOL) {
-        lines.push(line);
-        line = "";
+      if ("str" in item) {
+        line += item.str;
+        if (item.hasEOL) {
+          lines.push(line);
+          line = "";
+        }
       }
     }
     if (line) lines.push(line);
@@ -158,9 +160,11 @@ async function extractPdf(path: string) {
      * link while every field check still passes.
      */
     for (const item of content.items) {
-      const right = item.transform[4] + (item.width ?? 0);
-      if (right > overflowLimit) {
-        overflows.push({ page: i, right, text: item.str.slice(0, 40) });
+      if ("transform" in item) {
+        const right = item.transform[4] + (item.width ?? 0);
+        if (right > overflowLimit) {
+          overflows.push({ page: i, right, text: item.str.slice(0, 40) });
+        }
       }
     }
   }
@@ -168,7 +172,7 @@ async function extractPdf(path: string) {
 }
 
 function unzip(buffer: Buffer) {
-  const files = {};
+  const files: Record<string, Buffer> = {};
   let offset = buffer.length - 22;
   while (offset > 0 && buffer.readUInt32LE(offset) !== 0x06054b50) offset -= 1;
   const count = buffer.readUInt16LE(offset + 10);
@@ -201,10 +205,10 @@ async function extractDocx(path: string) {
         .map((match) => match[1])
         .join("")
         /*
-         * A entidade do apóstrofo faltava aqui, e a falta não parecia um erro
-         * de extração: "children&#39;s" simplesmente não casava com o texto de
-         * src/data, e a checagem acusava artefato desatualizado num arquivo
-         * recém-gerado. Um leitor de .docx desescapa tudo; este também.
+         * The apostrophe entity was missing here, and the omission did not look
+         * like an extraction bug: "children&#39;s" simply failed to match text from
+         * src/data, and the check reported a stale artifact on a newly generated
+         * file. A .docx reader unescapes everything; this parser must as well.
          */
         .replace(/&#3[49];|&apos;/g, "'")
         .replace(/&quot;/g, '"')
@@ -224,6 +228,14 @@ async function extractDocx(path: string) {
   };
 }
 
+interface Expectation {
+  sections: string[];
+  order: string[];
+  titles: string[];
+  skills: string[];
+  openings?: string[];
+}
+
 const results: { label: string; passed: boolean; detail: string }[] = [];
 
 function check(label: string, passed: boolean, detail = "") {
@@ -232,7 +244,7 @@ function check(label: string, passed: boolean, detail = "") {
   console.log(`${mark} ${label}${detail ? ` — ${detail}` : ""}`);
 }
 
-function auditText(text: string, expected: any, source: string) {
+function auditText(text: string, expected: Expectation, source: string) {
   const compact = text.replace(/\s+/g, " ");
 
   check(`${source}: camada de texto extraída`, text.length > 2000, `${text.length} caracteres`);
@@ -291,13 +303,12 @@ function auditText(text: string, expected: any, source: string) {
   check(`${source}: sem símbolo exótico de marcador`, exotic.length === 0, `${exotic.length} encontrados`);
 
   /*
-   * Os primeiros itens que o currículo deste locale realmente tem, lidos de
-   * src/data em vez de escritos aqui. A versão anterior trazia as frases em
-   * português e em inglês dentro da expressão regular, e um currículo em
-   * espanhol reprovava sem ter nada de errado — a verificação é sobre a
-   * quebra de linha, não sobre o idioma.
+   * The first items that this locale's résumé actually contains, read from
+   * src/data rather than hardcoded here. An earlier version included the phrases
+   * in Portuguese and English in the regex, causing a Spanish résumé to fail
+   * without anything being wrong — the verification is about line breaks, not language.
    */
-  const openings = expected.openings as string[];
+  const openings = expected.openings ?? [];
   const highlightLines = text
     .split("\n")
     // The bullet glyph sits in the same extracted line as its text, so it is
@@ -349,7 +360,7 @@ function auditFreshness(text: string, locale: keyof typeof cvByLocale, source: s
 
 console.log("Simulação de parsing de ATS\n" + "=".repeat(60));
 
-/** As primeiras palavras de cada item de experiência, vindas dos dados. */
+/** The opening words of each experience highlight, sourced from the data. */
 function openingsOf(locale: keyof typeof cvByLocale): string[] {
   return cvByLocale[locale].positions
     .flatMap((position) => position.highlights.slice(0, 1))
@@ -361,11 +372,11 @@ for (const locale of locales) {
   console.log(`\n### ${locale.toUpperCase()} — PDF`);
   const pdf = await extractPdf(join(cvDir, `Roney-Oliveira-Software-Engineer-${locale.slice(-2).toUpperCase()}.pdf`));
   /*
-   * Informado, não exigido. Este é o currículo base, e ele é a fonte de fatos,
-   * não o arquivo que se envia: quem vai para a vaga é a versão adaptada, que
-   * o modelo encurta escolhendo o que aquela vaga tem motivo para ler. Um teto
-   * de páginas aqui pressionaria a tirar um fato verdadeiro do repositório
-   * justamente para caber numa folha que ninguém recebe.
+   * Informational, not required. This is the base résumé and serves as the
+   * source of facts, not the document sent out: what goes to the job is the
+   * tailored version, which the model shortens by choosing what that role gives
+   * reason to read. A page ceiling here would pressure removing true facts from
+   * the repository solely to fit a print sheet that no employer receives directly.
    */
   console.log(`  --  PDF ${locale}: ${pdf.pageCount} páginas (sem limite, é o currículo base)`);
   check(

@@ -31,15 +31,15 @@ export default defineConfig({
    * Fastify app that already exists, and writing one just to host this would
    * be a server to maintain in exchange for nothing.
    *
-   * `staticHeaders` fica desligado de propósito. Ele serviria o CSP das
-   * páginas pré-renderizadas como header em vez de meta, mas o adapter casa a
-   * rota com `pathname.includes()`, e com barra final isso erra: medido, a
-   * home recebia um CSP cujos hashes eram de outra página — e um CSP com o
-   * hash errado não avisa, apenas bloqueia o script.
+   * `staticHeaders` remains disabled intentionally. It would serve the CSP of
+   * pre-rendered pages as a header instead of a meta tag, but the adapter matches
+   * routes with `pathname.includes()`, which misbehaves with trailing slashes:
+   * measured in practice, the home page received a CSP whose hashes belonged to another
+   * page — and a CSP with the wrong hash does not warn, it simply blocks the script.
    *
-   * Como meta, a política é escrita dentro da própria página, então é sempre
-   * a dela. O que se perde é `frame-ancestors`, ignorado em meta por
-   * especificação, e que já vai como X-Frame-Options.
+   * As meta, the policy is written directly into each page, ensuring it is always
+   * its own. What is lost is `frame-ancestors`, ignored in meta by specification,
+   * which is already handled via X-Frame-Options.
    */
   adapter: node({ mode: "standalone" }),
 
@@ -88,7 +88,30 @@ export default defineConfig({
        * in production from a Kubernetes Secret, so it is never in the image.
        */
       OPENAI_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
-      OPENAI_MODEL: envField.string({
+      /*
+       * One model per call, because the three perform distinct tasks:
+       * - Triage: reads the posting cheaply to extract metadata (default: gpt-5-nano)
+       * - Tailor: reasons over candidate facts and adapts the résumé (default: gpt-5.6-luna)
+       * - Salary: searches the web for current market compensation bands (default: gpt-5.6-luna)
+       *
+       * Previously only the tailoring model was configurable while the other
+       * two were hardcoded in code. Now all three have defaults matching their
+       * established behavior and can be overridden independently via environment
+       * variables without redeploying code.
+       */
+      OPENAI_TRIAGE_MODEL: envField.string({
+        context: "server",
+        access: "secret",
+        optional: true,
+        default: "gpt-5-nano"
+      }),
+      OPENAI_TAILOR_MODEL: envField.string({
+        context: "server",
+        access: "secret",
+        optional: true,
+        default: "gpt-5.6-luna"
+      }),
+      OPENAI_SALARY_MODEL: envField.string({
         context: "server",
         access: "secret",
         optional: true,
