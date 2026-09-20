@@ -93,8 +93,15 @@ export function planSchema(facts: CvFacts) {
       targetRole: {
         type: "string",
         description:
-          "The job title exactly as the posting advertises it. The only text in " +
-          "this answer that may come from the posting."
+          "The job title as the posting advertises it, written for this one " +
+          "candidate rather than for every applicant: keep the posting's words, " +
+          "but put the title in the candidate's grammatical gender and drop the " +
+          "markers that are there only to address both. 'Desenvolvedor(a) Full " +
+          "Stack' is 'Desenvolvedor Full Stack', 'Pessoa Desenvolvedora Backend' " +
+          "is 'Desenvolvedor Backend', 'Analista de Dados (m/f)' is 'Analista de " +
+          "Dados'. Nothing else about the title changes — not the level, not the " +
+          "stack, not the wording. The only text in this answer that may come " +
+          "from the posting."
       },
       sectionOrder: {
         type: "array",
@@ -186,6 +193,7 @@ export function planSchema(facts: CvFacts) {
         required: [
           "summary",
           "company",
+          "country",
           "advertisedLevel",
           "actualLevel",
           "fit",
@@ -215,6 +223,13 @@ export function planSchema(facts: CvFacts) {
               "searched for on its own, and what one company pays beats a national " +
               "average. Say 'não informado' when the advertisement does not name it — " +
               "many do not, and guessing one sends the search after the wrong band."
+          },
+          country: {
+            type: "string",
+            description:
+              "O país cujo mercado paga esta vaga, em uma palavra: 'Brasil', " +
+              "'Estados Unidos', 'Portugal'. Um anúncio em português que não " +
+              "diz é Brasil. É com esta palavra que a busca salarial é montada."
           },
           advertisedLevel: {
             type: "string",

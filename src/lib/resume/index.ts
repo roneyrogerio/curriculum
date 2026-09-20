@@ -23,7 +23,7 @@ import { factsOf } from "./facts";
 import { factsPrompt, INSTRUCTIONS, postingPrompt } from "./prompt";
 import { responseFormat } from "./schema";
 import { searchMarketSalary, SEARCH_CALL_USD, SEARCH_MODEL, type MarketSalary } from "./market";
-import { exchangeRates, type Rates } from "./rates";
+import { titleForCandidate } from "./title";
 import { verifyPlan, type Violation } from "./verify";
 
 export interface TailorRequest {
@@ -47,8 +47,6 @@ export interface SalaryAdvice {
    * a three-quarters match is worth.
    */
   market: MarketSalary;
-  /** ECB reference rates, or null when the feed could not be reached. */
-  rates: Rates | null;
   fit: number;
   fitNote: string;
   advertisedLevel: string;
@@ -124,6 +122,10 @@ export async function tailorResume(
     const market = await searchMarketSalary(
       {
         summary: assessment.summary,
+        // The same title the sheet is headed with, so the search asks about
+        // the job the résumé claims rather than about a rephrasing of it.
+        role: titleForCandidate(verified.plan.targetRole) || cv.role,
+        country: assessment.country,
         actualLevel: assessment.actualLevel,
         company: assessment.company,
         fit: clamp(assessment.fit),
@@ -139,7 +141,6 @@ export async function tailorResume(
       summary: assessment.summary,
       company: assessment.company,
       market,
-      rates: await exchangeRates(options.fetch),
       fit: clamp(assessment.fit),
       fitNote: assessment.fitNote,
       advertisedLevel: assessment.advertisedLevel,

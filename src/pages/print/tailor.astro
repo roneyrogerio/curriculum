@@ -69,26 +69,6 @@ if (Astro.request.method === "POST") {
  * nowhere: the sheet is built by composeDocument, which never sees this field.
  */
 const salary = result?.salary ?? null;
-/*
- * A faixa vem numa moeda e num período — o do mercado que a pagou. As outras
- * células saem daqui, convertendo pelo real como pivô, com a cotação que a
- * busca trouxe. A conta fica aqui, visível, e a taxa usada aparece na tela.
- */
-const CURRENCIES = ["BRL", "USD", "EUR"] as const;
-type Currency = (typeof CURRENCIES)[number];
-
-/*
- * Uma cotação fora disto é erro de leitura, não câmbio: o dólar não vale dois
- * centavos nem duzentos reais. Sem cotação plausível, só a moeda de origem é
- * mostrada — um número errado é pior que um número ausente.
- */
-const plausible = (rate: number) => Number.isFinite(rate) && rate > 0.5 && rate < 50;
-const rates = salary?.rates;
-const canConvert = !!rates && plausible(rates.usdBrl) && plausible(rates.eurBrl);
-const shownCurrencies: Currency[] = canConvert
-  ? [...CURRENCIES]
-  : [(salary?.market.currency ?? "BRL") as Currency];
-
 /* Um rótulo só quando os dois níveis divergem: é a divergência que interessa. */
 const levelMismatch =
   !!salary && salary.advertisedLevel.trim().toLowerCase() !== salary.actualLevel.trim().toLowerCase();
@@ -105,22 +85,28 @@ const showsRegime = regime !== "não se aplica" && pjFactor > 1.01;
 const otherRegime = regime === "CLT" ? "PJ" : "CLT";
 const toOther = (value: number) => (regime === "CLT" ? value * pjFactor : value / pjFactor);
 
-const money = (value: number, currency: string) =>
+/*
+ * O número na moeda em que ele foi encontrado, e nada além disso.
+ *
+ * A conversão saiu daqui inteira: eram uma chamada de rede ao BCE por dia, um
+ * cache, um teste de plausibilidade da cotação e duas colunas a mais na
+ * tabela — tudo para exibir em dólar e em euro um salário que se negocia em
+ * real. Na prática, uma vaga brasileira é cotada em real e a tabela mostra
+ * real. A moeda continua vindo da busca em vez de ser chumbada porque este
+ * painel também adapta anúncio em inglês: escrever "R$" sobre uma faixa
+ * americana seria mais barato de programar e simplesmente falso.
+ */
+const money = (value: number) =>
   new Intl.NumberFormat("pt-BR", {
     style: "currency",
-    currency,
+    currency: salary?.market.currency ?? "BRL",
     maximumFractionDigits: 0
   }).format(value);
 
-/** Quantos reais vale uma unidade da moeda. O real é o pivô das conversões. */
-const inBrl = (currency: Currency) =>
-  currency === "BRL" ? 1 : currency === "USD" ? (rates?.usdBrl ?? 1) : (rates?.eurBrl ?? 1);
-
-/** Um valor da moeda de origem, convertido e posto no período pedido. */
-const convert = (value: number, currency: Currency, period: "month" | "year") => {
+/** O mercado brasileiro cota por mês; o ano são doze deles. */
+const perPeriod = (value: number, period: "month" | "year") => {
   const monthly = salary!.market.period === "year" ? value / 12 : value;
-  const inPeriod = period === "year" ? monthly * 12 : monthly;
-  return (inPeriod * inBrl(salary!.market.currency as Currency)) / inBrl(currency);
+  return period === "year" ? monthly * 12 : monthly;
 };
 
 const cost = result ? result.usage.usd.toFixed(4) : null;
@@ -231,42 +217,26 @@ const cachedShare =
                       </tr>
                     </thead>
                     <tbody>
-                      {shownCurrencies.map((currency) => (
-                        <tr class:list={[currency === salary.market.currency && "is-native"]}>
-                          <th>{currency}</th>
-                          {(["month", "year"] as const).map((period) => (
-                            <td>
-                              {salary.market.min === salary.market.max
-                                ? money(convert(salary.market.min, currency, period), currency)
-                                : `${money(convert(salary.market.min, currency, period), currency)} – ${money(convert(salary.market.max, currency, period), currency)}`}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
+                      <tr class="is-native">
+                        <th>faixa</th>
+                        {(["month", "year"] as const).map((period) => (
+                          <td>
+                            {salary.market.min === salary.market.max
+                              ? money(perPeriod(salary.market.min, period))
+                              : `${money(perPeriod(salary.market.min, period))} – ${money(perPeriod(salary.market.max, period))}`}
+                          </td>
+                        ))}
+                      </tr>
                       <tr class="tailor__rates-median">
                         <th>mediana</th>
                         {(["month", "year"] as const).map((period) => (
-                          <td>
-                            {shownCurrencies.map((currency, index) => (
-                              <>
-                                {index > 0 && <br />}
-                                {money(convert(salary.market.median, currency, period), currency)}
-                              </>
-                            ))}
-                          </td>
+                          <td>{money(perPeriod(salary.market.median, period))}</td>
                         ))}
                       </tr>
                       <tr class="tailor__rates-ask">
                         <th>pedir</th>
                         {(["month", "year"] as const).map((period) => (
-                          <td>
-                            {shownCurrencies.map((currency, index) => (
-                              <>
-                                {index > 0 && <br />}
-                                {money(convert(salary.market.ask, currency, period), currency)}
-                              </>
-                            ))}
-                          </td>
+                          <td>{money(perPeriod(salary.market.ask, period))}</td>
                         ))}
                       </tr>
                     </tbody>
@@ -275,11 +245,11 @@ const cachedShare =
                   {showsRegime && (
                     <p class="tailor__note tailor__note--money">
                       <b>Equivalente {otherRegime}:</b> pedir{" "}
-                      <b>{money(convert(toOther(salary.market.ask), salary.market.currency as Currency, "month"), salary.market.currency)}</b>
+                      <b>{money(perPeriod(toOther(salary.market.ask), "month"))}</b>
                       {" por mês"} · faixa{" "}
-                      {money(convert(toOther(salary.market.min), salary.market.currency as Currency, "month"), salary.market.currency)}
+                      {money(perPeriod(toOther(salary.market.min), "month"))}
                       {" – "}
-                      {money(convert(toOther(salary.market.max), salary.market.currency as Currency, "month"), salary.market.currency)}
+                      {money(perPeriod(toOther(salary.market.max), "month"))}
                       {` · fator ${pjFactor.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}`}
                       <br />
                       <small>{salary.market.regimeNote}</small>
@@ -291,11 +261,6 @@ const cachedShare =
                     {salary.market.askNote}
                   </p>
                   <p class="tailor__note tailor__note--money">{salary.market.note}</p>
-                  {canConvert && rates && (
-                    <p class="tailor__note tailor__note--money">
-                      Conversão pelas taxas de referência do BCE de {rates.date}.
-                    </p>
-                  )}
                   <p class="tailor__note tailor__note--money">
                     <b>Pesquisado como:</b> {salary.summary}
                     {salary.company && salary.company !== "não informado" && ` · empresa: ${salary.company}`}
