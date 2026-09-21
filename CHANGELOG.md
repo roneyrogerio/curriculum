@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/roneyrogerio/curriculum/compare/v0.9.0...v0.9.1) (2026-09-21)
+
+
+### Correções
+
+* dar domínio aos links de certificado que saem do site ([b8457bf](https://github.com/roneyrogerio/curriculum/commit/b8457bf305e67e157db1b10c62b707fd90fba302))
+
 ## [0.9.0](https://github.com/roneyrogerio/curriculum/compare/v0.8.3...v0.9.0) (2026-09-21)
 
 
