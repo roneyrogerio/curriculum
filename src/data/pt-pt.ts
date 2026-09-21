@@ -56,7 +56,8 @@ export const ptPt: CV = {
         { name: "PHP", level: 4 },
         { name: "WordPress", level: 3 },
         { name: "C", level: 3 },
-        { name: "C++", level: 3 }
+        { name: "C++", level: 3 },
+        { name: "Python", level: 2 }
       ]
     },
     {
