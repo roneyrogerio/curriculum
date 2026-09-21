@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.3](https://github.com/roneyrogerio/curriculum/compare/v0.8.2...v0.8.3) (2026-09-21)
+
+
+### Correções
+
+* não deixar cair o curso que é a única prova de uma tecnologia ([b1abdf3](https://github.com/roneyrogerio/curriculum/commit/b1abdf356d962a1c301aed734d5adfcbfa81269a))
+
 ## [0.8.2](https://github.com/roneyrogerio/curriculum/compare/v0.8.1...v0.8.2) (2026-09-20)
 
 
