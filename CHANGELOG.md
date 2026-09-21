@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/roneyrogerio/curriculum/compare/v0.8.3...v0.9.0) (2026-09-21)
+
+
+### Funcionalidades
+
+* declarar Python entre as linguagens, no nível que ele é ([b084aca](https://github.com/roneyrogerio/curriculum/commit/b084aca93b90f6555e65d352606161b728a6fe98))
+
 ## [0.8.3](https://github.com/roneyrogerio/curriculum/compare/v0.8.2...v0.8.3) (2026-09-21)
 
 
