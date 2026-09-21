@@ -17,6 +17,7 @@ import {
   TextRun,
   convertInchesToTwip
 } from "docx";
+import { absoluteHref } from "./links";
 import type { Block, ResumeDocument } from "./resume/document";
 
 const FONT = "Calibri";
@@ -63,7 +64,9 @@ function bullet(value: string) {
  */
 function hyperlink(url: string, label?: string) {
   return new ExternalHyperlink({
-    link: url,
+    // Absolute, always: Word resolves a rooted path against the reader's own
+    // disk, so the link lands on a file that never existed there.
+    link: absoluteHref(url),
     children: [
       new TextRun({
         text: label ?? url.replace(/^https?:\/\//, ""),

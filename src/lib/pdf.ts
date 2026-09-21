@@ -7,6 +7,7 @@
  * on screen, and the base-14 fonts keep the file small without embedding.
  */
 import { PDFDocument, type PDFFont, type PDFPage, PDFString, StandardFonts, rgb } from "pdf-lib";
+import { absoluteHref } from "./links";
 import type { Block, ResumeDocument } from "./resume/document";
 
 const MM = 72 / 25.4;
@@ -110,7 +111,13 @@ class Sheet {
       Subtype: "Link",
       Rect: [x, y - 1, x + width, y + height],
       Border: [0, 0, 0],
-      A: this.document.context.obj({ Type: "Action", S: "URI", URI: PDFString.of(href) })
+      // Absolute, always: a reader has no page to resolve a rooted path
+      // against, so `/certificados/x.pdf` would simply do nothing.
+      A: this.document.context.obj({
+        Type: "Action",
+        S: "URI",
+        URI: PDFString.of(absoluteHref(href))
+      })
     });
     this.page.node.addAnnot(this.document.context.register(annotation));
   }
