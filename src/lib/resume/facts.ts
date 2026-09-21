@@ -138,9 +138,15 @@ export function factsOf(cv: CV): CvFacts {
       id: factIds.certification(index),
       text: `${certification.name} — ${certification.issuer}, ${certification.issued}`
     })),
+    /*
+     * The period included, because the sheet prints it and the model was
+     * deciding without it. Whether a short course is worth a line depends on
+     * when it was taken as much as on its subject, and a model shown only
+     * "15 h" reads every course as equally old.
+     */
     courses: cv.courses.map((course, index) => ({
       id: factIds.course(index),
-      text: `${course.name} — ${course.issuer}, ${course.workload}`
+      text: `${course.name} — ${course.issuer}, ${course.workload}, ${course.period}`
     }))
   };
 }

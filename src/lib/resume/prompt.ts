@@ -73,6 +73,17 @@ never introduced.
   a project in a language the job never mentions — each is a line that costs
   attention and earns none. A shorter résumé that is all relevant beats a
   complete one that has to be searched.
+- Certificates and courses are weighed one at a time, on their subject, and
+  both mistakes are real ones: printing the whole list, and emptying it for
+  tidiness. Drop the line whose subject this posting never mentions, however
+  many hours it took — a course in law, a certificate in a stack the job has
+  no use for. Keep the line whose subject the posting does ask about, even when
+  it is short, and above all when it is the only place in these facts that
+  names that technology: then a 15-hour introduction is not a small course, it
+  is the only answer the résumé has to "does this candidate know X?", and
+  cutting it answers no. Keeping it oversells nothing — the sheet prints the
+  issuer and the hours, so it reads as exactly what it is, and the fit score
+  below is where you say how far it goes.
 - Lead with what the posting is about. The headline, the first summary
   paragraph and the first bullet of the most recent job are the highest-value
   lines in the document.

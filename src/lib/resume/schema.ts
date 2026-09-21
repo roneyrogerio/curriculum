@@ -176,14 +176,22 @@ export function planSchema(facts: CvFacts) {
       certificationIds: {
         ...idArray(
           "Ids from cer.* this posting gives a reason to read. A certificate in " +
-            "another field is a line that costs attention and earns none."
+            "another field is a line that costs attention and earns none — unless " +
+            "it is the only place in these facts that names a technology the " +
+            "posting asks for, and then it is the evidence for it."
         ),
         maxItems: facts.certifications.length
       },
       courseIds: {
         ...idArray(
-          "Ids from crs.* this posting gives a reason to read. These are short " +
-            "courses: keep them only when they are on the subject of the job."
+          "Ids from crs.* whose subject this posting names. Judge each course on " +
+            "its own, and expect to keep some and drop some: a course the posting " +
+            "never gives a subject for is noise however long it was, and a course " +
+            "on a technology the posting asks for is evidence however short it " +
+            "was — decisively so when it is the only line in these facts that " +
+            "names that technology, since dropping it answers 'no' to the question " +
+            "the posting is asking. Returning the whole list and returning an empty " +
+            "one are both usually wrong."
         ),
         maxItems: facts.courses.length
       },
