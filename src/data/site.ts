@@ -17,3 +17,6 @@ export const contact: Contact = {
 };
 
 export const locales = ["pt-br", "en-us"] as const;
+
+/** Public by design: it ships in every page's HTML, so it is not a secret. */
+export const analyticsId = "G-698Q9G4LKY";

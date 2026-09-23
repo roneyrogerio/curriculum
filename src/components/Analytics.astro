@@ -1,0 +1,39 @@
+---
+import { analyticsId } from "../data/site";
+
+interface Props {
+  /**
+   * Which kind of page this is, reported as GA4's `content_group`.
+   *
+   * The path already carries the locale, so six CVs group by language on
+   * their own; what the path does not say is that `/pt-br/` and `/fr/` are the
+   * same page. The group is what lets the reports answer "how many read the
+   * CV, how many went on to print it" without a regex over every locale.
+   */
+  group: "gate" | "cv" | "print" | "not-found";
+}
+
+const { group } = Astro.props;
+/* Production only: a page reloaded a hundred times while writing it is not a visitor. */
+const enabled = import.meta.env.PROD;
+---
+
+{enabled && (
+  <>
+    <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${analyticsId}`}></script>
+    {/*
+      Inline because `define:vars` only works on inline scripts, and it is what
+      carries the ID and the group in without writing them twice. It also wraps
+      the script in a function, so `gtag` is set on `window` explicitly: the
+      library reads `dataLayer`, but any later event on the page calls `gtag`.
+    */}
+    <script is:inline define:vars={{ analyticsId, group }}>
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () {
+        dataLayer.push(arguments);
+      };
+      gtag("js", new Date());
+      gtag("config", analyticsId, { content_group: group });
+    </script>
+  </>
+)}

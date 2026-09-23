@@ -88,16 +88,35 @@ describe("security headers", () => {
     /*
      * `script-src 'unsafe-inline'` exists for one reason — the script that
      * reads the theme before the first paint has to be inline — and the price
-     * is that everything else stays shut. Relax `default-src` or `object-src`
-     * by accident and the script's relaxation stops being contained.
+     * is that every other origin is named, one by one. Relax `default-src` or
+     * `object-src` by accident, or let a directive gain a host nobody meant to
+     * add, and the script's relaxation stops being contained.
+     *
+     * Compared as sets per directive, not as substrings: `toContain("connect-src
+     * 'self'")` also passes for `connect-src 'self' https:`, which is the very
+     * widening this test exists to catch.
      */
-    const csp = SECURITY_HEADERS["Content-Security-Policy"];
-    expect(csp).toContain("default-src 'self'");
-    expect(csp).toContain("object-src 'none'");
-    expect(csp).toContain("frame-ancestors 'none'");
-    expect(csp).toContain("connect-src 'self'");
-    // The relaxation is the script's alone: nothing loads from another origin.
-    expect(csp).not.toContain("script-src 'unsafe-eval'");
-    expect(csp).not.toMatch(/default-src[^;]*\*/);
+    const directives = new Map(
+      SECURITY_HEADERS["Content-Security-Policy"].split(";").map((directive) => {
+        const [name, ...sources] = directive.trim().split(/\s+/);
+        return [name, sources.sort()] as const;
+      })
+    );
+    const analytics = ["https://www.googletagmanager.com", "https://*.google-analytics.com"];
+
+    // Every directive, so a new one, or a duplicate the Map would fold away, fails too.
+    expect(directives.size).toBe(SECURITY_HEADERS["Content-Security-Policy"].split(";").length);
+    expect(Object.fromEntries(directives)).toEqual({
+      "default-src": ["'self'"],
+      "base-uri": ["'self'"],
+      "form-action": ["'self'"],
+      "frame-ancestors": ["'none'"],
+      "img-src": ["'self'", "data:", ...analytics].sort(),
+      "script-src": ["'self'", "'unsafe-inline'", "https://www.googletagmanager.com"].sort(),
+      "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"].sort(),
+      "font-src": ["'self'", "https://fonts.gstatic.com"].sort(),
+      "connect-src": ["'self'", ...analytics, "https://*.google.com"].sort(),
+      "object-src": ["'none'"]
+    });
   });
 });

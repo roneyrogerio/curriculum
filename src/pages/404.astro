@@ -10,6 +10,7 @@
  * So the list is built from the locales that exist, exactly as `index.astro`
  * builds its own. Adding a language stays one edit, in `src/data`.
  */
+import Analytics from "../components/Analytics.astro";
 import { allLocales, cvByLocale } from "../data";
 import { siteUrl } from "../data/site";
 import "../styles/site.css";
@@ -40,6 +41,7 @@ const options = allLocales.map((locale) => {
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap"
     />
+    <Analytics group="not-found" />
   </head>
   <body class="gate-body">
     <main class="gate">

@@ -29,20 +29,23 @@ primeira camada, não a única.
 
 ## 2. Os headers de segurança das páginas estáticas
 
-O `Content-Security-Policy` sai do próprio Astro, com hash por script inline, e o
-adapter o envia como header também nas páginas pré-renderizadas (`staticHeaders`).
-
-Os outros quatro headers não têm equivalente no Astro para páginas estáticas: o
-middleware roda apenas nas rotas sob demanda, porque uma página pré-renderizada é
-servida pelo handler de arquivos antes de a aplicação ser alcançada. Eles ficam
-numa **Transform Rule → Modify Response Header**, aplicada a todo o site:
+Nenhum deles tem como sair do Astro nas páginas pré-renderizadas: o middleware roda
+apenas nas rotas sob demanda, porque uma página pré-renderizada é servida pelo
+handler de arquivos antes de a aplicação ser alcançada, e o `security.csp` e o
+`staticHeaders` ficam desligados pelos motivos escritos em `astro.config.mjs`. Os
+cinco ficam numa **Transform Rule → Modify Response Header**, aplicada a todo o site:
 
 ```
-X-Frame-Options:        DENY
-X-Content-Type-Options: nosniff
-Referrer-Policy:        strict-origin-when-cross-origin
-Permissions-Policy:     camera=(), microphone=(), geolocation=(), interest-cohort=()
+X-Frame-Options:         DENY
+X-Content-Type-Options:  nosniff
+Referrer-Policy:         strict-origin-when-cross-origin
+Permissions-Policy:      camera=(), microphone=(), geolocation=(), interest-cohort=()
+Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self' data: https://www.googletagmanager.com https://*.google-analytics.com; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://www.googletagmanager.com https://*.google-analytics.com https://*.google.com; object-src 'none'
 ```
 
 São os mesmos valores de `src/middleware.ts`, que continua cobrindo `/print/tailor/`.
-Se a regra sumir, `npm run verify:headers` acusa.
+Se a regra sumir ou divergir do código, `npm run verify:headers` acusa.
+
+**O CSP muda na regra antes do deploy.** Sem os hosts do Google, o `gtag.js` é
+bloqueado sem aviso e o Analytics simplesmente não recebe nada. Com os hosts na regra
+e o código ainda antigo, nada quebra: é só permissão sobrando até o deploy chegar.

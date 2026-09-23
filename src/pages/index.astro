@@ -9,6 +9,7 @@ import { jsonForScript } from "../lib/markup";
  * detection would always resolve to the same version. The page suggests a
  * language instead of forcing one.
  */
+import Analytics from "../components/Analytics.astro";
 import ThemeSwitch from "../components/ThemeSwitch.astro";
 import { allLocales, cvByLocale } from "../data";
 import { siteUrl } from "../data/site";
@@ -97,6 +98,7 @@ const schema = {
         }
       })();
     </script>
+    <Analytics group="gate" />
   </head>
   <body class="gate-body">
     <main class="gate">

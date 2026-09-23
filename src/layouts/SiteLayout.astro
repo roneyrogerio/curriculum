@@ -1,4 +1,5 @@
 ---
+import Analytics from "../components/Analytics.astro";
 import BaseHead from "../components/BaseHead.astro";
 import ThemeSwitch from "../components/ThemeSwitch.astro";
 import ArrowLeft from "../assets/icons/arrow-left.svg";
@@ -26,6 +27,7 @@ const path = `/${cv.locale}/`;
 <html lang={cv.lang}>
   <head>
     <BaseHead cv={cv} path={path} />
+    <Analytics group="cv" />
     <script is:inline>
       /* Applied before first paint so the stored theme never flashes. */
       (function () {

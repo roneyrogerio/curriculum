@@ -30,19 +30,25 @@ export const SECURITY_HEADERS: Record<string, string> = {
    * astro.config.mjs.
    *
    * The relaxation stays contained by `default-src 'self'`: nothing may be
-   * fetched, connected to or framed from elsewhere, and `object-src 'none'`
-   * closes plugins.
+   * fetched, connected to or framed from an origin not named below, and
+   * `object-src 'none'` closes plugins.
+   *
+   * Two services are named. Google Fonts, for the stylesheet and the fonts.
+   * Google Analytics, with exactly the three directives Google's own CSP guide
+   * lists for GA4 without Ads features: the library from googletagmanager.com,
+   * and the hits it sends as requests or pixels. Turning on Google Signals or Ads linking needs more hosts than
+   * these, and the page will not say so — the hits are simply blocked.
    */
   "Content-Security-Policy": [
     "default-src 'self'",
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
-    "img-src 'self' data:",
-    "script-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https://www.googletagmanager.com https://*.google-analytics.com",
+    "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
-    "connect-src 'self'",
+    "connect-src 'self' https://www.googletagmanager.com https://*.google-analytics.com https://*.google.com",
     "object-src 'none'"
   ].join("; ")
 };
