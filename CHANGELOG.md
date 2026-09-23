@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/roneyrogerio/curriculum/compare/v0.9.1...v0.10.0) (2026-09-23)
+
+
+### Funcionalidades
+
+* medir visitas com o Google Analytics ([b542702](https://github.com/roneyrogerio/curriculum/commit/b542702461cdf906ac1d29c136fb44c3e63340ce))
+
 ## [0.9.1](https://github.com/roneyrogerio/curriculum/compare/v0.9.0...v0.9.1) (2026-09-21)
 
 
