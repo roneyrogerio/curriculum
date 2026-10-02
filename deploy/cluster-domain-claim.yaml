@@ -4,3 +4,10 @@ metadata:
   name: roneyrogerio.dev
 spec:
   namespace: curriculum
+---
+apiVersion: networking.internal.knative.dev/v1alpha1
+kind: ClusterDomainClaim
+metadata:
+  name: www.roneyrogerio.dev
+spec:
+  namespace: curriculum
